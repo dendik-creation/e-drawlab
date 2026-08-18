@@ -1,0 +1,342 @@
+import Phaser from 'phaser'
+import { EventBus } from '../EventBus'
+import { DESIGN_WIDTH, DESIGN_HEIGHT, DPR } from '../main'
+import { coverFit } from '../coverFit'
+import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.png'
+
+const TEXT_COLOR = '#0c6179'
+const BORDER_COLOR = 0x2b909f
+const FILL_COLOR = 0xceb5e5
+const TEXT_RESOLUTION = Math.min(window.devicePixelRatio || 1, 2)
+const FONT_HEADING = "'Baloo 2 Variable', 'Baloo 2', sans-serif"
+const FONT_BODY = "'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif"
+
+const BAR_X = 960
+const BAR_Y = 704.5
+const BAR_WIDTH = 738
+const BAR_HEIGHT = 41
+const BAR_RADIUS = 17
+
+const MOCK_DURATION = 1000
+const MOCK_TARGET = 0.4
+const BUBBLE_OUT_DURATION = 280
+const BUBBLE_IN_DURATION = 320
+const BUBBLE_IN_DELAY = 140
+const ENTRANCE_DURATION = 320
+const ENTRANCE_STAGGER = 120
+const ENTRANCE_EASE = 'Back.easeOut'
+
+const BUTTON_WIDTH = 460
+const BUTTON_HEIGHT = 123
+
+// Idle affordance: a short bright segment that continuously chases around the
+// button's outline (an outset "trail" box, so it clears the button art).
+const TRAIL_WIDTH = BUTTON_WIDTH + 16
+const TRAIL_HEIGHT = BUTTON_HEIGHT + 16
+const TRAIL_RADIUS = 24
+const TRAIL_DURATION = 1800
+const TRAIL_LENGTH = 0.22
+const TRAIL_SEGMENTS = 12
+const TRAIL_STROKE_WIDTH = 4
+const TRAIL_ALPHA = 0.85
+
+const HOVER_SCALE = 1.05
+const HOVER_DURATION = 150
+const PRESS_SCALE = 0.92
+const PRESS_DOWN_DURATION = 90
+const PRESS_UP_DURATION = 180
+
+type BubbleTarget = Phaser.GameObjects.Image | Phaser.GameObjects.Text | Phaser.GameObjects.Graphics
+
+/**
+ * Renders both Splash Scene frames (loading / ready) as one persistent scene:
+ * the logo and subtitle are created once and never re-rendered — only the bar↔button
+ * region bubbles out/in when the loading state changes.
+ */
+export class Splash extends Phaser.Scene {
+  private track!: Phaser.GameObjects.Graphics
+  private progressFill!: Phaser.GameObjects.Graphics
+  private progressText!: Phaser.GameObjects.Text
+  private entranceGroups: { targets: BubbleTarget[]; baseScales: number[] }[] = []
+
+  constructor() {
+    super('Splash')
+  }
+
+  preload() {
+    this.cameras.main.setZoom(DPR).centerOn(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2)
+    this.cameras.main.setBackgroundColor('#faf3e7')
+
+    const logo = coverFit(this.add.image(960, 390.5, 'main-logo'), 790, 263)
+    this.prepareBubbleGroup([logo])
+
+    const subtitle = this.add
+      .text(
+        960,
+        576,
+        'Laboratorium Maya Interaktif\nuntuk Desain CAD Elektronika',
+        {
+          fontFamily: FONT_HEADING,
+          fontStyle: '800',
+          fontSize: '48px',
+          color: TEXT_COLOR,
+          align: 'center',
+          lineSpacing: 6,
+          resolution: TEXT_RESOLUTION,
+        },
+      )
+      .setOrigin(0.5)
+    this.prepareBubbleGroup([subtitle])
+
+    this.buildLoadingState()
+    this.prepareBubbleGroup([this.track, this.progressFill, this.progressText])
+  }
+
+  create() {
+    EventBus.emit('current-scene-ready', this)
+
+    this.playEntrance(() => {
+      this.tweens.addCounter({
+        from: 0,
+        to: MOCK_TARGET,
+        duration: MOCK_DURATION,
+        ease: 'Sine.easeInOut',
+        onUpdate: (tween) => this.setProgress(tween.getValue() ?? 0),
+        onComplete: () => this.startRealLoad(),
+      })
+    })
+  }
+
+  private prepareBubbleGroup(targets: BubbleTarget[]) {
+    const baseScales = targets.map((target) => target.scale)
+    targets.forEach((target, i) => target.setScale(baseScales[i] * 0.6).setAlpha(0))
+    this.entranceGroups.push({ targets, baseScales })
+  }
+
+  private playEntrance(onComplete: () => void) {
+    this.entranceGroups.forEach((group, index) => {
+      const delay = index * ENTRANCE_STAGGER
+      const isLastGroup = index === this.entranceGroups.length - 1
+
+      group.targets.forEach((target, i) => {
+        this.tweens.add({
+          targets: target,
+          scale: group.baseScales[i],
+          alpha: 1,
+          duration: ENTRANCE_DURATION,
+          delay,
+          ease: ENTRANCE_EASE,
+          onComplete: isLastGroup && i === 0 ? onComplete : undefined,
+        })
+      })
+    })
+  }
+
+  private buildLoadingState() {
+    this.track = this.add
+      .graphics({ x: BAR_X, y: BAR_Y })
+      .fillStyle(0xffffff, 1)
+      .fillRoundedRect(-BAR_WIDTH / 2, -BAR_HEIGHT / 2, BAR_WIDTH, BAR_HEIGHT, BAR_RADIUS)
+      .lineStyle(3, BORDER_COLOR, 1)
+      .strokeRoundedRect(-BAR_WIDTH / 2, -BAR_HEIGHT / 2, BAR_WIDTH, BAR_HEIGHT, BAR_RADIUS)
+
+    this.progressFill = this.add.graphics({ x: BAR_X, y: BAR_Y })
+
+    this.progressText = this.add
+      .text(960, 768.5, '0% Memuat Konten', {
+        fontFamily: FONT_BODY,
+        fontStyle: '500',
+        fontSize: '24px',
+        color: TEXT_COLOR,
+        resolution: TEXT_RESOLUTION,
+      })
+      .setOrigin(0.5)
+  }
+
+  private startRealLoad() {
+    this.load.on('progress', (progress: number) => {
+      this.setProgress(MOCK_TARGET + progress * (1 - MOCK_TARGET))
+    })
+
+    this.load.once('complete', () => this.bubbleToReadyState())
+
+    this.load.image('btn-masuklab', btnMasukLabUrl)
+    this.load.start()
+  }
+
+  private setProgress(progress: number) {
+    const width = Math.max(BAR_WIDTH * progress, BAR_HEIGHT)
+    const radius = Math.min(BAR_RADIUS, width / 2)
+
+    this.progressFill
+      .clear()
+      .fillStyle(FILL_COLOR, 1)
+      .fillRoundedRect(-BAR_WIDTH / 2, -BAR_HEIGHT / 2, width, BAR_HEIGHT, radius)
+      .lineStyle(2, BORDER_COLOR, 1)
+      .strokeRoundedRect(-BAR_WIDTH / 2, -BAR_HEIGHT / 2, width, BAR_HEIGHT, radius)
+
+    this.progressText.setText(`${Math.round(progress * 100)}% Memuat Konten`)
+  }
+
+  private bubbleToReadyState() {
+    const bubbleOutTargets = [this.track, this.progressFill, this.progressText]
+
+    this.tweens.add({
+      targets: bubbleOutTargets,
+      scale: 1.3,
+      alpha: 0,
+      duration: BUBBLE_OUT_DURATION,
+      ease: 'Cubic.easeIn',
+      onComplete: () => bubbleOutTargets.forEach((target) => target.destroy()),
+    })
+
+    // Sits behind the button; drawn every frame by playTrailLoop() once the button is in.
+    const trail = this.add.graphics({ x: 960, y: 770.5 })
+
+    const button = coverFit(this.add.image(960, 770.5, 'btn-masuklab'), BUTTON_WIDTH, BUTTON_HEIGHT)
+      .setInteractive({ useHandCursor: true })
+
+    const baseScaleX = button.scaleX
+    const baseScaleY = button.scaleY
+    button.setScale(baseScaleX * 0.6, baseScaleY * 0.6).setAlpha(0)
+
+    const setButtonScale = (multiplier: number, duration: number, ease: string) => {
+      this.tweens.killTweensOf(button)
+      this.tweens.add({
+        targets: button,
+        scaleX: baseScaleX * multiplier,
+        scaleY: baseScaleY * multiplier,
+        duration,
+        ease,
+      })
+    }
+
+    button.on('pointerover', () => setButtonScale(HOVER_SCALE, HOVER_DURATION, 'Sine.easeOut'))
+    button.on('pointerout', () => setButtonScale(1, HOVER_DURATION, 'Sine.easeOut'))
+    button.on('pointerdown', () => {
+      EventBus.emit('masuk-lab')
+      this.tweens.killTweensOf(button)
+      this.tweens.add({
+        targets: button,
+        scaleX: baseScaleX * PRESS_SCALE,
+        scaleY: baseScaleY * PRESS_SCALE,
+        duration: PRESS_DOWN_DURATION,
+        ease: 'Quad.easeOut',
+        onComplete: () => setButtonScale(HOVER_SCALE, PRESS_UP_DURATION, 'Back.easeOut'),
+      })
+    })
+
+    const footer = this.add
+      .text(
+        960,
+        1016.5,
+        'Untuk Siswa Kelas X SMK Program Keahlian Teknik Elektronika',
+        {
+          fontFamily: FONT_BODY,
+          fontStyle: '500',
+          fontSize: '24px',
+          color: TEXT_COLOR,
+          resolution: TEXT_RESOLUTION,
+        },
+      )
+      .setOrigin(0.5)
+      .setScale(0.6)
+      .setAlpha(0)
+
+    this.tweens.add({
+      targets: button,
+      scaleX: baseScaleX,
+      scaleY: baseScaleY,
+      alpha: 1,
+      duration: BUBBLE_IN_DURATION,
+      delay: BUBBLE_IN_DELAY,
+      ease: 'Back.easeOut',
+      onComplete: () => this.playTrailLoop(trail),
+    })
+
+    this.tweens.add({
+      targets: footer,
+      scale: 1,
+      alpha: 1,
+      duration: BUBBLE_IN_DURATION,
+      delay: BUBBLE_IN_DELAY,
+      ease: 'Back.easeOut',
+    })
+  }
+
+  private playTrailLoop(trail: Phaser.GameObjects.Graphics) {
+    this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: TRAIL_DURATION,
+      repeat: -1,
+      ease: 'Linear',
+      onUpdate: (tween) => this.drawBorderTrail(trail, tween.getValue() ?? 0),
+    })
+  }
+
+  /** Draws a fading comet of short segments trailing behind `headT` along the outline. */
+  private drawBorderTrail(trail: Phaser.GameObjects.Graphics, headT: number) {
+    trail.clear()
+
+    for (let i = 0; i < TRAIL_SEGMENTS; i++) {
+      const t0 = headT - (i / TRAIL_SEGMENTS) * TRAIL_LENGTH
+      const t1 = headT - ((i + 1) / TRAIL_SEGMENTS) * TRAIL_LENGTH
+      const p0 = this.roundedRectPoint(t0, TRAIL_WIDTH, TRAIL_HEIGHT, TRAIL_RADIUS)
+      const p1 = this.roundedRectPoint(t1, TRAIL_WIDTH, TRAIL_HEIGHT, TRAIL_RADIUS)
+      const alpha = TRAIL_ALPHA * (1 - i / TRAIL_SEGMENTS)
+
+      trail
+        .lineStyle(TRAIL_STROKE_WIDTH, BORDER_COLOR, alpha)
+        .beginPath()
+        .moveTo(p0.x, p0.y)
+        .lineTo(p1.x, p1.y)
+        .strokePath()
+    }
+  }
+
+  /** Walks a point clockwise around a rounded rect's perimeter, `t` in [0, 1) starting at top-left. */
+  private roundedRectPoint(t: number, width: number, height: number, radius: number) {
+    const halfWidth = width / 2
+    const halfHeight = height / 2
+    const straightX = width - 2 * radius
+    const straightY = height - 2 * radius
+    const arc = (Math.PI / 2) * radius
+    const segments = [straightX, arc, straightY, arc, straightX, arc, straightY, arc]
+    const total = segments.reduce((sum, length) => sum + length, 0)
+
+    let distance = (((t % 1) + 1) % 1) * total
+    let segmentIndex = 0
+    while (distance > segments[segmentIndex]) {
+      distance -= segments[segmentIndex]
+      segmentIndex++
+    }
+
+    switch (segmentIndex) {
+      case 0:
+        return { x: -halfWidth + radius + distance, y: -halfHeight }
+      case 1: {
+        const angle = -Math.PI / 2 + distance / radius
+        return { x: halfWidth - radius + Math.cos(angle) * radius, y: -halfHeight + radius + Math.sin(angle) * radius }
+      }
+      case 2:
+        return { x: halfWidth, y: -halfHeight + radius + distance }
+      case 3: {
+        const angle = distance / radius
+        return { x: halfWidth - radius + Math.cos(angle) * radius, y: halfHeight - radius + Math.sin(angle) * radius }
+      }
+      case 4:
+        return { x: halfWidth - radius - distance, y: halfHeight }
+      case 5: {
+        const angle = Math.PI / 2 + distance / radius
+        return { x: -halfWidth + radius + Math.cos(angle) * radius, y: halfHeight - radius + Math.sin(angle) * radius }
+      }
+      case 6:
+        return { x: -halfWidth, y: halfHeight - radius - distance }
+      default: {
+        const angle = Math.PI + distance / radius
+        return { x: -halfWidth + radius + Math.cos(angle) * radius, y: -halfHeight + radius + Math.sin(angle) * radius }
+      }
+    }
+  }
+}
