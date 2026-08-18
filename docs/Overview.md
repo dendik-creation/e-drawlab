@@ -58,7 +58,7 @@ Client-only static web application, local-first, installable as a PWA, distribut
 - [[Requirements]] → [[Functional-Requirements]] · [[Non-Functional-Requirements]] · [[Features]] · [[Main-Learning-Flow]]
 
 **UX / UI**
-- [[UX-Principles]] · [[Navigation]] · [[Responsive-Design]] · [[Landscape-Design]] · [[Accessibility]] · [[UI-States]] · [[Screens]]
+- [[UX-Principles]] · [[Navigation]] · [[Responsive-Design]] · [[Landscape-Design]] · [[Accessibility]] · [[UI-States]] · [[Typography]] · [[Screens]]
 
 **Architecture**
 - [[System-Architecture]] · [[Application-Architecture]] · [[Content-Architecture]] · [[Data-Architecture]]

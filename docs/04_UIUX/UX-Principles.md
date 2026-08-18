@@ -52,4 +52,4 @@ No opening video, instant home (REQ-F-028), decoration never occludes the canvas
 
 ## Related
 
-- [[Navigation]] · [[Responsive-Design]] · [[Landscape-Design]] · [[UI-States]] · [[Accessibility]]
+- [[Navigation]] · [[Responsive-Design]] · [[Landscape-Design]] · [[UI-States]] · [[Accessibility]] · [[Typography]]

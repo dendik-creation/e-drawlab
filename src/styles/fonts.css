@@ -1,0 +1,25 @@
+/* Font loading: local variable fonts via Fontsource (no network/Google Fonts request). */
+@import '@fontsource-variable/baloo-2';
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/jetbrains-mono';
+
+:root {
+  --font-heading: 'Baloo 2 Variable', 'Baloo 2', sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
+}
+
+.text-heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
