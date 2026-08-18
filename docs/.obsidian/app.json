@@ -1,0 +1,10 @@
+{
+  "attachmentFolderPath": "03_Content/Attachments",
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "showLineNumber": true,
+  "strictLineBreaks": false,
+  "readableLineLength": false,
+  "showInlineTitle": true
+}

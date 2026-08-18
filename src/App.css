@@ -1,0 +1,14 @@
+#phaser-container {
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #1d1d1d;
+}
+
+#phaser-container canvas {
+  max-width: 100%;
+  max-height: 100%;
+}

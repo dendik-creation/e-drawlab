@@ -1,0 +1,6 @@
+# Transient Obsidian workspace state — machine-local, not shared config.
+# Shared config (app.json, appearance.json, core-plugins.json, graph.json, themes/)
+# stays tracked: it carries the vault's theme and plugin setup.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
