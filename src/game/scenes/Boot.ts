@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
-import { DESIGN_WIDTH, DESIGN_HEIGHT, DPR } from '../main'
+import { applyStageCamera } from '../stage'
+import { audio } from '../audio/AudioDirector'
+import { session } from '../state/session'
 import mainLogoUrl from '../../../assets/images/00_identity/main_logo.png'
 
 const REQUIRED_FONTS = [
@@ -15,10 +17,13 @@ export class Boot extends Phaser.Scene {
 
   preload() {
     this.load.image('main-logo', mainLogoUrl)
+    // SFX ship with the shell: tiny, and needed the instant anything is touched.
+    audio.queue(this, ['sfx'])
   }
 
   create() {
-    this.cameras.main.setZoom(DPR).centerOn(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2)
+    applyStageCamera(this)
+    session.set({ currentScene: 'Boot' })
     EventBus.emit('current-scene-ready', this)
     Promise.all(REQUIRED_FONTS.map((font) => document.fonts.load(font))).then(
       () => this.scene.start('Splash'),

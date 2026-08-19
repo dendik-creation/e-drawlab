@@ -1,7 +1,10 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
-import { DESIGN_WIDTH, DESIGN_HEIGHT, DPR } from '../main'
+import { applyStageCamera, STAGE_RESIZE_EVENT } from '../stage'
 import { coverFit } from '../coverFit'
+import { queueHomeTextures } from './Home'
+import { audio } from '../audio/AudioDirector'
+import { session } from '../state/session'
 import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.png'
 
 const TEXT_COLOR = '#0c6179'
@@ -58,13 +61,14 @@ export class Splash extends Phaser.Scene {
   private progressFill!: Phaser.GameObjects.Graphics
   private progressText!: Phaser.GameObjects.Text
   private entranceGroups: { targets: BubbleTarget[]; baseScales: number[] }[] = []
+  private entering = false
 
   constructor() {
     super('Splash')
   }
 
   preload() {
-    this.cameras.main.setZoom(DPR).centerOn(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2)
+    applyStageCamera(this)
     this.cameras.main.setBackgroundColor('#faf3e7')
 
     const logo = coverFit(this.add.image(960, 390.5, 'main-logo'), 790, 263)
@@ -93,6 +97,12 @@ export class Splash extends Phaser.Scene {
   }
 
   create() {
+    session.set({ currentScene: 'Splash' })
+
+    const recentre = () => applyStageCamera(this)
+    EventBus.on(STAGE_RESIZE_EVENT, recentre)
+    this.events.once('shutdown', () => EventBus.off(STAGE_RESIZE_EVENT, recentre))
+
     EventBus.emit('current-scene-ready', this)
 
     this.playEntrance(() => {
@@ -161,6 +171,10 @@ export class Splash extends Phaser.Scene {
     this.load.once('complete', () => this.bubbleToReadyState())
 
     this.load.image('btn-masuklab', btnMasukLabUrl)
+    queueHomeTextures(this)
+    // The loops are the heavy half of the audio budget, so they ride the
+    // progress bar rather than stalling the first interactive frame.
+    audio.queue(this, ['music', 'ambience'])
     this.load.start()
   }
 
@@ -211,10 +225,22 @@ export class Splash extends Phaser.Scene {
       })
     }
 
-    button.on('pointerover', () => setButtonScale(HOVER_SCALE, HOVER_DURATION, 'Sine.easeOut'))
+    button.on('pointerover', () => {
+      audio.play('hover')
+      setButtonScale(HOVER_SCALE, HOVER_DURATION, 'Sine.easeOut')
+    })
     button.on('pointerout', () => setButtonScale(1, HOVER_DURATION, 'Sine.easeOut'))
     button.on('pointerdown', () => {
+      if (this.entering) return
+      this.entering = true
+
+      // This press is the browser's autoplay unlock point, so it is also where
+      // the score and room tone are allowed to start.
+      audio.play('click')
+      audio.setProfile('menu')
+
       EventBus.emit('masuk-lab')
+      button.disableInteractive()
       this.tweens.killTweensOf(button)
       this.tweens.add({
         targets: button,
@@ -222,7 +248,10 @@ export class Splash extends Phaser.Scene {
         scaleY: baseScaleY * PRESS_SCALE,
         duration: PRESS_DOWN_DURATION,
         ease: 'Quad.easeOut',
-        onComplete: () => setButtonScale(HOVER_SCALE, PRESS_UP_DURATION, 'Back.easeOut'),
+        onComplete: () => {
+          setButtonScale(HOVER_SCALE, PRESS_UP_DURATION, 'Back.easeOut')
+          this.time.delayedCall(PRESS_UP_DURATION, () => this.scene.start('Home'))
+        },
       })
     })
 
