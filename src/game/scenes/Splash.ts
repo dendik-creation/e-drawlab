@@ -4,7 +4,7 @@ import { applyStageCamera, STAGE_RESIZE_EVENT } from '../stage'
 import { coverFit } from '../coverFit'
 import { queueHomeTextures } from './Home'
 import { audio } from '../audio/AudioDirector'
-import { session } from '../state/session'
+import { session, SESSION_CHANGED_EVENT } from '../state/session'
 import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.png'
 
 const TEXT_COLOR = '#0c6179'
@@ -49,7 +49,40 @@ const PRESS_SCALE = 0.92
 const PRESS_DOWN_DURATION = 90
 const PRESS_UP_DURATION = 180
 
+// Rotate prompt. Occupies the same slot as the Masuk Lab button, because the
+// two are mutually exclusive: the product is landscape-first (ADR-009), and a
+// portrait viewport is asked to turn rather than served a reflowed layout.
+const GATE_X = 960
+const GATE_Y = 770.5
+const PHONE_OFFSET_Y = -40
+const PHONE_WIDTH = 96
+const PHONE_HEIGHT = 160
+const PHONE_RADIUS = 18
+const PHONE_STROKE = 6
+const PHONE_SCREEN_INSET_X = 14
+const PHONE_SCREEN_INSET_Y = 22
+const PHONE_SCREEN_RADIUS = 8
+const PHONE_SCREEN_FILL = 0xdff0f2
+const PHONE_DETAIL_WIDTH = 26
+const PHONE_DETAIL_HEIGHT = 5
+const ROTATE_LABEL_Y = 92
+const ROTATE_LABEL = 'Putar perangkat ke mode lanskap'
+const ROTATE_TILT_DURATION = 900
+const ROTATE_HOLD_DURATION = 700
+
 type BubbleTarget = Phaser.GameObjects.Image | Phaser.GameObjects.Text | Phaser.GameObjects.Graphics
+
+/**
+ * One of two mutually exclusive things that can occupy the call-to-action slot.
+ * Kept as data so the swap logic never needs to know which is which.
+ */
+interface Gate {
+  target: Phaser.GameObjects.Image | Phaser.GameObjects.Container
+  baseScaleX: number
+  baseScaleY: number
+  onShown: () => void
+  onHidden: () => void
+}
 
 /**
  * Renders both Splash Scene frames (loading / ready) as one persistent scene:
@@ -62,6 +95,10 @@ export class Splash extends Phaser.Scene {
   private progressText!: Phaser.GameObjects.Text
   private entranceGroups: { targets: BubbleTarget[]; baseScales: number[] }[] = []
   private entering = false
+  private gates?: { button: Gate; rotate: Gate }
+  private activeGate: 'button' | 'rotate' | null = null
+  private trailTween?: Phaser.Tweens.Tween
+  private phoneTween?: Phaser.Tweens.Tween
 
   constructor() {
     super('Splash')
@@ -100,8 +137,13 @@ export class Splash extends Phaser.Scene {
     session.set({ currentScene: 'Splash' })
 
     const recentre = () => applyStageCamera(this)
+    const syncGate = () => this.applyOrientationGate(BUBBLE_IN_DELAY)
     EventBus.on(STAGE_RESIZE_EVENT, recentre)
-    this.events.once('shutdown', () => EventBus.off(STAGE_RESIZE_EVENT, recentre))
+    EventBus.on(SESSION_CHANGED_EVENT, syncGate)
+    this.events.once('shutdown', () => {
+      EventBus.off(STAGE_RESIZE_EVENT, recentre)
+      EventBus.off(SESSION_CHANGED_EVENT, syncGate)
+    })
 
     EventBus.emit('current-scene-ready', this)
 
@@ -212,7 +254,8 @@ export class Splash extends Phaser.Scene {
 
     const baseScaleX = button.scaleX
     const baseScaleY = button.scaleY
-    button.setScale(baseScaleX * 0.6, baseScaleY * 0.6).setAlpha(0)
+    button.setScale(baseScaleX * 0.6, baseScaleY * 0.6).setAlpha(0).setVisible(false)
+    button.disableInteractive()
 
     const setButtonScale = (multiplier: number, duration: number, ease: string) => {
       this.tweens.killTweensOf(button)
@@ -272,16 +315,40 @@ export class Splash extends Phaser.Scene {
       .setScale(0.6)
       .setAlpha(0)
 
-    this.tweens.add({
-      targets: button,
-      scaleX: baseScaleX,
-      scaleY: baseScaleY,
-      alpha: 1,
-      duration: BUBBLE_IN_DURATION,
-      delay: BUBBLE_IN_DELAY,
-      ease: 'Back.easeOut',
-      onComplete: () => this.playTrailLoop(trail),
-    })
+    const rotatePrompt = this.buildRotatePrompt()
+
+    this.gates = {
+      button: {
+        target: button,
+        baseScaleX,
+        baseScaleY,
+        onShown: () => {
+          button.setInteractive({ useHandCursor: true })
+          this.trailTween = this.playTrailLoop(trail)
+        },
+        onHidden: () => {
+          button.disableInteractive()
+          this.trailTween?.remove()
+          this.trailTween = undefined
+          trail.clear()
+        },
+      },
+      rotate: {
+        target: rotatePrompt.container,
+        baseScaleX: 1,
+        baseScaleY: 1,
+        onShown: () => {
+          this.phoneTween = this.playPhoneTiltLoop(rotatePrompt.phone)
+        },
+        onHidden: () => {
+          this.phoneTween?.remove()
+          this.phoneTween = undefined
+          rotatePrompt.phone.setAngle(0)
+        },
+      },
+    }
+
+    this.applyOrientationGate(BUBBLE_IN_DELAY)
 
     this.tweens.add({
       targets: footer,
@@ -293,8 +360,126 @@ export class Splash extends Phaser.Scene {
     })
   }
 
+  /**
+   * Swaps the call-to-action for whichever gate the current orientation calls
+   * for. In portrait the Masuk Lab button is never merely hidden — it is left
+   * without input, so a stray tap on its old position cannot enter the lab.
+   */
+  private applyOrientationGate(delay: number) {
+    if (!this.gates) return
+
+    const wanted = session.get().portrait ? 'rotate' : 'button'
+    if (this.activeGate === wanted) return
+
+    const previous = this.activeGate
+    this.activeGate = wanted
+
+    if (previous) this.hideGate(this.gates[previous])
+    this.showGate(this.gates[wanted], previous ? BUBBLE_IN_DELAY : delay)
+  }
+
+  private showGate(gate: Gate, delay: number) {
+    this.tweens.killTweensOf(gate.target)
+    gate.target
+      .setScale(gate.baseScaleX * 0.6, gate.baseScaleY * 0.6)
+      .setAlpha(0)
+      .setVisible(true)
+
+    this.tweens.add({
+      targets: gate.target,
+      scaleX: gate.baseScaleX,
+      scaleY: gate.baseScaleY,
+      alpha: 1,
+      duration: BUBBLE_IN_DURATION,
+      delay,
+      ease: 'Back.easeOut',
+      onComplete: gate.onShown,
+    })
+  }
+
+  private hideGate(gate: Gate) {
+    gate.onHidden()
+    this.tweens.killTweensOf(gate.target)
+
+    this.tweens.add({
+      targets: gate.target,
+      scaleX: gate.baseScaleX * 1.3,
+      scaleY: gate.baseScaleY * 1.3,
+      alpha: 0,
+      duration: BUBBLE_OUT_DURATION,
+      ease: 'Cubic.easeIn',
+      onComplete: () => gate.target.setVisible(false),
+    })
+  }
+
+  /** A phone that keeps turning itself from portrait to landscape, plus the instruction. */
+  private buildRotatePrompt() {
+    const halfWidth = PHONE_WIDTH / 2
+    const halfHeight = PHONE_HEIGHT / 2
+
+    const phone = this.add
+      .graphics({ x: 0, y: PHONE_OFFSET_Y })
+      .fillStyle(0xffffff, 1)
+      .fillRoundedRect(-halfWidth, -halfHeight, PHONE_WIDTH, PHONE_HEIGHT, PHONE_RADIUS)
+      .fillStyle(PHONE_SCREEN_FILL, 1)
+      .fillRoundedRect(
+        -halfWidth + PHONE_SCREEN_INSET_X,
+        -halfHeight + PHONE_SCREEN_INSET_Y,
+        PHONE_WIDTH - PHONE_SCREEN_INSET_X * 2,
+        PHONE_HEIGHT - PHONE_SCREEN_INSET_Y * 2,
+        PHONE_SCREEN_RADIUS,
+      )
+      .lineStyle(PHONE_STROKE, BORDER_COLOR, 1)
+      .strokeRoundedRect(-halfWidth, -halfHeight, PHONE_WIDTH, PHONE_HEIGHT, PHONE_RADIUS)
+      // Earpiece and home indicator: without them a rotated rounded rectangle
+      // reads as an abstract shape rather than a device.
+      .fillStyle(BORDER_COLOR, 1)
+      .fillRoundedRect(
+        -PHONE_DETAIL_WIDTH / 2,
+        -halfHeight + (PHONE_SCREEN_INSET_Y - PHONE_DETAIL_HEIGHT) / 2,
+        PHONE_DETAIL_WIDTH,
+        PHONE_DETAIL_HEIGHT,
+        PHONE_DETAIL_HEIGHT / 2,
+      )
+      .fillRoundedRect(
+        -PHONE_DETAIL_WIDTH / 2,
+        halfHeight - (PHONE_SCREEN_INSET_Y + PHONE_DETAIL_HEIGHT) / 2,
+        PHONE_DETAIL_WIDTH,
+        PHONE_DETAIL_HEIGHT,
+        PHONE_DETAIL_HEIGHT / 2,
+      )
+
+    const label = this.add
+      .text(0, ROTATE_LABEL_Y, ROTATE_LABEL, {
+        fontFamily: FONT_HEADING,
+        fontStyle: '800',
+        fontSize: '34px',
+        color: TEXT_COLOR,
+        align: 'center',
+        resolution: TEXT_RESOLUTION,
+      })
+      .setOrigin(0.5)
+
+    const container = this.add.container(GATE_X, GATE_Y, [phone, label]).setVisible(false)
+
+    return { container, phone }
+  }
+
+  private playPhoneTiltLoop(phone: Phaser.GameObjects.Graphics) {
+    return this.tweens.add({
+      targets: phone,
+      angle: -90,
+      duration: ROTATE_TILT_DURATION,
+      ease: 'Cubic.easeInOut',
+      hold: ROTATE_HOLD_DURATION,
+      yoyo: true,
+      repeat: -1,
+      repeatDelay: ROTATE_HOLD_DURATION,
+    })
+  }
+
   private playTrailLoop(trail: Phaser.GameObjects.Graphics) {
-    this.tweens.addCounter({
+    return this.tweens.addCounter({
       from: 0,
       to: 1,
       duration: TRAIL_DURATION,

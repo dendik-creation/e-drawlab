@@ -15,6 +15,12 @@ export interface SessionState {
    * ambience start at the first click, never on load.
    */
   audioUnlocked: boolean
+  /**
+   * The viewport is taller than it is wide. The product is landscape-first
+   * (ADR-009), so scenes gate their primary action on this rather than trying
+   * to reflow a layout authored at 16:9.
+   */
+  portrait: boolean
   /** A modal/overlay is up; scenes should suspend their own input and timers. */
   paused: boolean
   /** Persistent "Langkah N dari M" indicator (REQ-F-018). Null outside the stages. */
@@ -27,6 +33,7 @@ export const session = createStore<SessionState>(
   {
     currentScene: 'Boot',
     audioUnlocked: false,
+    portrait: window.innerHeight > window.innerWidth,
     paused: false,
     step: null,
   },
