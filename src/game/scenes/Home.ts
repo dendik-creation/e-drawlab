@@ -14,6 +14,7 @@ import { BubbleSequence } from '../bubble'
 import { audio } from '../audio/AudioDirector'
 import { settings, SETTINGS_CHANGED_EVENT, toggleMute } from '../state/settings'
 import { session } from '../state/session'
+import { isMenuCompleted } from '../state/progress'
 import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.png'
 import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.png'
 import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.png'
@@ -22,6 +23,7 @@ import menuModel3dUrl from '../../../assets/images/01_menu_buttons/menu_model_3d
 import menuKomponenUrl from '../../../assets/images/01_menu_buttons/menu_komponen.png'
 import menuPengaturanUrl from '../../../assets/images/01_menu_buttons/menu_pengaturan.png'
 import menuKeluarUrl from '../../../assets/images/01_menu_buttons/menu_keluar.png'
+import badgeChecklistUrl from '../../../assets/images/03_electronic_assets/badge_checklist.png'
 
 /**
  * Textures the Home scene draws, minus `main-logo` which Boot already loads.
@@ -36,6 +38,7 @@ const HOME_TEXTURES: Record<string, string> = {
   'menu-komponen': menuKomponenUrl,
   'menu-pengaturan': menuPengaturanUrl,
   'menu-keluar': menuKeluarUrl,
+  'badge-checklist': badgeChecklistUrl,
 }
 
 export function queueHomeTextures(scene: Phaser.Scene) {
@@ -134,6 +137,11 @@ const MENU_ITEMS = [
 
 export type HomeMenuAction = (typeof MENU_ITEMS)[number]['action']
 
+/** "Sudah dipelajari" badge — straddles a completed menu button's top-right corner, same overlap trick as the clip on the sheet. */
+const BADGE_SIZE = 44
+const BADGE_INSET_X = 14
+const BADGE_INSET_Y = 10
+
 // Responsive layout. Everything below is expressed relative to the clipboard's
 // centre, which is the content container's origin.
 const CLIPBOARD_TOP_EXTENT = BOARD_HEIGHT / 2 + CLIP_HEIGHT / 2
@@ -162,7 +170,7 @@ export class Home extends Phaser.Scene {
   private content!: Phaser.GameObjects.Container
   /** Screen-corner furniture, anchored independently of the menu. */
   private hud!: Phaser.GameObjects.Container
-  private interactives: Phaser.GameObjects.Image[] = []
+  private interactives: (Phaser.GameObjects.Image | Phaser.GameObjects.Container)[] = []
   private bgmToggle!: Phaser.GameObjects.Image
   private exiting = false
 
@@ -180,6 +188,12 @@ export class Home extends Phaser.Scene {
 
     session.set({ currentScene: 'Home' })
     audio.setProfile('menu')
+
+    // The Scene instance is reused across visits — Phaser calls create() again
+    // rather than reconstructing the class — so state left over from a
+    // previous visit must be cleared explicitly here.
+    this.interactives = []
+    this.exiting = false
 
     // Fitted to the stage, not the design frame, so it bleeds into whatever
     // extra width or height the viewport's aspect ratio adds. Barely scales
@@ -210,13 +224,34 @@ export class Home extends Phaser.Scene {
 
     const buttons = MENU_ITEMS.map((item) => {
       // MENU_ITEMS keeps the raw Figma coordinates so they stay traceable.
-      const button = this.add
-        .image(item.x - BOARD_X, item.y + CLIPBOARD_OFFSET_Y - BOARD_Y, item.texture)
-        .setDisplaySize(item.width, item.height)
+      const buttonX = item.x - BOARD_X
+      const buttonY = item.y + CLIPBOARD_OFFSET_Y - BOARD_Y
+      const button = this.add.image(0, 0, item.texture).setDisplaySize(item.width, item.height)
 
-      this.attachButtonBehaviour(button, () => this.exitTo(item.action))
-      this.bubbles.add(button)
-      return button
+      // "Sudah dipelajari" badge, straddling the button's top-right corner —
+      // only markMenuCompleted() (DesainSkema.ts, on reaching evaluasi) has
+      // ever set one so far, but every menu item is checked generically so
+      // future steps light up without touching Home again. It rides inside
+      // the same wrapper Container as the button rather than sitting beside
+      // it as its own bubble/hover target — a badge that scales and fades on
+      // its own schedule reads as pasted on; parented like this, it inherits
+      // every transform (bubble in/out, hover, press) the button gets, for
+      // free, with zero extra tweens.
+      const wrapChildren: Phaser.GameObjects.Image[] = [button]
+      if (isMenuCompleted(item.action)) {
+        const badge = this.add
+          .image(item.width / 2 - BADGE_INSET_X, -item.height / 2 + BADGE_INSET_Y, 'badge-checklist')
+          .setDisplaySize(BADGE_SIZE, BADGE_SIZE)
+        wrapChildren.push(badge)
+      }
+
+      const wrap = this.add.container(buttonX, buttonY, wrapChildren)
+      wrap.setSize(item.width, item.height)
+
+      this.attachButtonBehaviour(wrap, () => this.exitTo(item.action))
+      this.bubbles.add(wrap)
+
+      return wrap
     })
 
     this.content.add([clipboard, logo, ...buttons])
@@ -394,7 +429,7 @@ export class Home extends Phaser.Scene {
    * Hover/press feedback shared by every clickable image. Input is only enabled
    * once the entrance finishes, so a hover tween can never fight the bubble in.
    */
-  private attachButtonBehaviour(button: Phaser.GameObjects.Image, onPress: () => void) {
+  private attachButtonBehaviour(button: Phaser.GameObjects.Image | Phaser.GameObjects.Container, onPress: () => void) {
     this.interactives.push(button)
 
     const baseScaleX = button.scaleX

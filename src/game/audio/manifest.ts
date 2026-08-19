@@ -78,6 +78,10 @@ export const SFX = {
   quizWrong: { file: 'quiz_wrong.mp3', layer: 'sfx' },
   pause: { file: 'pause.mp3', layer: 'sfx' },
   resume: { file: 'resume.mp3', layer: 'sfx' },
+  /** Every component in a Desain Skema work sheet is correctly wired. */
+  allConnected: { file: 'all_connected_success.ogg', layer: 'sfx' },
+  /** Langkah 3 evaluation quiz finished — plays once the results card appears, replacing work_theme. */
+  completeEvaluation: { file: 'complete_evaluation.ogg', layer: 'sfx' },
 } as const satisfies Record<string, AudioAsset>
 
 /** Looping score. One track per context, cross-faded or ducked between scenes. */

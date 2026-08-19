@@ -50,7 +50,6 @@ class AudioDirector {
 
   attach(game: Phaser.Game) {
     this.game = game
-    game.sound.mute = settings.get().muted
 
     game.events.on(Phaser.Core.Events.STEP, this.step, this)
     EventBus.on(SETTINGS_CHANGED_EVENT, this.applySettings, this)
@@ -121,27 +120,37 @@ class AudioDirector {
       return
     }
 
-    game.sound.play(key, { ...config, volume: (config.volume ?? 1) * settings.get().sfxVolume })
+    game.sound.play(key, { ...config, volume: (config.volume ?? 1) * settings.get().sfxVolume * this.muteFactor() })
+  }
+
+  /**
+   * 0 when muted, 1 otherwise. Folded into every volume calculation instead
+   * of Phaser's `sound.mute` — that flag snaps every track silent/audible in
+   * one frame, which is what made the toggle feel like a hard cut. Routing
+   * mute through the existing fade machinery (fadeTo/transition) makes it
+   * ride down and back up like any other volume change.
+   */
+  private muteFactor() {
+    return settings.get().muted ? 0 : 1
   }
 
   private applySettings() {
     const game = this.game
     if (!game) return
 
-    game.sound.mute = settings.get().muted
-
-    // Layer trims changed: re-target the running loops without restarting them.
+    // Layer trims (and mute) changed: re-target the running loops without
+    // restarting them — this is what turns muting into a fade instead of a cut.
     const target = AUDIO_PROFILES[this.profile] as {
       music?: { key: keyof typeof MUSIC; volume: number }
       ambience?: { key: keyof typeof AMBIENCE; volume: number }
     }
     if (this.music && target.music) {
-      this.fadeTo(this.music, target.music.volume * settings.get().musicVolume, DUCK_DURATION, false)
+      this.fadeTo(this.music, target.music.volume * settings.get().musicVolume * this.muteFactor(), DUCK_DURATION, false)
     }
     if (this.ambience && target.ambience) {
       this.fadeTo(
         this.ambience,
-        target.ambience.volume * settings.get().ambienceVolume,
+        target.ambience.volume * settings.get().ambienceVolume * this.muteFactor(),
         DUCK_DURATION,
         false,
       )
@@ -157,17 +166,18 @@ class AudioDirector {
       ambience?: { key: keyof typeof AMBIENCE; volume: number }
     }
     const trims = settings.get()
+    const mute = this.muteFactor()
 
     this.music = this.transition(
       this.music,
-      target.music && { key: target.music.key, volume: target.music.volume * trims.musicVolume },
+      target.music && { key: target.music.key, volume: target.music.volume * trims.musicVolume * mute },
       crossfade,
     )
     this.ambience = this.transition(
       this.ambience,
       target.ambience && {
         key: target.ambience.key,
-        volume: target.ambience.volume * trims.ambienceVolume,
+        volume: target.ambience.volume * trims.ambienceVolume * mute,
       },
       crossfade,
     )

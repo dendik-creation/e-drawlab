@@ -1,0 +1,103 @@
+{
+  "questions": [
+    {
+      "id": "Q-S1-01",
+      "question": "Gambar R1 adalah simbol dari komponen ...",
+      "images": ["paper-work-1"],
+      "options": [
+        { "key": "A", "text": "LED (Light Emitting Diode)" },
+        { "key": "B", "text": "Resistor" },
+        { "key": "C", "text": "Baterai / Sumber Tegangan" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S1-02",
+      "question": "Bagaimana urutan penyambungan jalurnya pada rangkaian di atas?",
+      "images": ["paper-work-1"],
+      "options": [
+        { "key": "A", "text": "Kutub (+) Baterai - Resistor R1 - Anoda LED - Katoda LED - Kutub (-) Baterai" },
+        { "key": "B", "text": "Kutub (+) Baterai - Katoda LED - Anoda LED - Resistor R1 - Kutub (-) Baterai" },
+        { "key": "C", "text": "Kutub (+) Baterai - Anoda LED - Resistor R1 - Katoda LED - Kutub (-) Baterai" }
+      ],
+      "correct": "A"
+    },
+    {
+      "id": "Q-S1-03",
+      "question": "Simbol LED pada gambar skema ditandai dengan gambar dioda yang dilengkapi dengan simbol ...",
+      "images": ["paper-work-1"],
+      "options": [
+        { "key": "A", "text": "Garis gelombang di dalam lingkaran" },
+        { "key": "B", "text": "Dua anak panah yang mengarah ke luar" },
+        { "key": "C", "text": "Tanda tambah (+) dan minus (-) di atasnya" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S1-04",
+      "question": "Ciri utama dari penggambaran rangkaian 2 LED seri di atas adalah...",
+      "images": ["paper-work-2"],
+      "options": [
+        { "key": "A", "text": "Komponen LED1 dan LED2 digambar berjejer pada satu garis jalur tunggal" },
+        { "key": "B", "text": "Komponen LED1 dan LED2 digambar sejajar bercabang dengan dua jalur terpisah" },
+        { "key": "C", "text": "Komponen LED2 digambar langsung terhubung ke baterai tanpa melewati resistor" }
+      ],
+      "correct": "A"
+    },
+    {
+      "id": "Q-S1-05",
+      "question": "Pada gambar skema 2 LED seri di atas, kaki katoda dari LED1 dihubungkan langsung ke...",
+      "images": ["paper-work-2"],
+      "options": [
+        { "key": "A", "text": "Kutub positif (+) baterai" },
+        { "key": "B", "text": "Kaki anoda dari LED2" },
+        { "key": "C", "text": "Kaki katoda dari LED2" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S1-06",
+      "question": "Jika seorang siswa menggambar jalur yang terputus (tidak menyambung) di antara LED1 dan LED2 pada skema seri di atas, apa dampaknya secara fungsi rangkaian?",
+      "images": ["paper-work-2"],
+      "options": [
+        { "key": "A", "text": "LED1 tetap menyala, tetapi LED2 padam" },
+        { "key": "B", "text": "LED2 tetap menyala, tetapi LED1 padam" },
+        { "key": "C", "text": "Seluruh aliran listrik terputus sehingga kedua LED tidak dapat menyala" }
+      ],
+      "correct": "C"
+    },
+    {
+      "id": "Q-S1-07",
+      "question": "Pada gambar skema 2 LED paralel di atas, simbol berupa titik tebal/bulat (node) pada persimpangan garis jalur berfungsi untuk menandakan bahwa...",
+      "images": ["paper-work-3"],
+      "options": [
+        { "key": "A", "text": "Jalur kawat tersebut saling bersilangan tetapi tidak terhubung" },
+        { "key": "B", "text": "Jalur kawat tersebut terhubung/tersambung secara listrik (titik percabangan)" },
+        { "key": "C", "text": "Komponen pada jalur tersebut mengalami kerusakan" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S1-08",
+      "question": "Perbedaan visual yang paling menonjol antara gambar skema 2 LED seri dan 2 LED paralel di atas adalah...",
+      "images": ["paper-work-2", "paper-work-3"],
+      "options": [
+        { "key": "A", "text": "Rangkaian paralel memiliki beberapa jalur cabang yang sejajar, sedangkan seri hanya satu jalur lurus" },
+        { "key": "B", "text": "Rangkaian paralel tidak memerlukan garis hubungan ke kutub negatif baterai" },
+        { "key": "C", "text": "Rangkaian seri menggunakan dua buah baterai, sedangkan paralel hanya satu" }
+      ],
+      "correct": "A"
+    },
+    {
+      "id": "Q-S1-09",
+      "question": "Pada gambar skema 2 LED paralel di atas, posisi pemasangan resistor yang tepat adalah...",
+      "images": ["paper-work-3"],
+      "options": [
+        { "key": "A", "text": "Dipasang satu buah saja di dekat baterai sebelum percabangan" },
+        { "key": "B", "text": "Dipasang masing-masing satu buah (R1 dan R2) di setiap cabang jalur LED" },
+        { "key": "C", "text": "Dipasang setelah kaki katoda kedua LED menyatu" }
+      ],
+      "correct": "B"
+    }
+  ]
+}

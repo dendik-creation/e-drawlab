@@ -21,3 +21,13 @@ export function coverFit(
     )
     .setScale(scale)
 }
+
+/** Scales an image to fit within a target box without cropping it (like CSS object-fit: contain). */
+export function containFit(
+  image: Phaser.GameObjects.Image,
+  width: number,
+  height: number,
+) {
+  const scale = Math.min(width / image.width, height / image.height)
+  return image.setScale(scale)
+}

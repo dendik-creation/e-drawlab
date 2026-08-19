@@ -5,7 +5,13 @@ import { DPR, measureStage, stage, STAGE_RESIZE_EVENT } from './stage'
 import { session } from './state/session'
 import { Boot } from './scenes/Boot'
 import { Splash } from './scenes/Splash'
-import { Home } from './scenes/Home'
+import { Home, type HomeMenuAction } from './scenes/Home'
+import { DesainSkema } from './scenes/DesainSkema'
+
+/** Where each Home menu action lands. Actions missing here have no destination scene yet. */
+const HOME_DESTINATIONS: Partial<Record<HomeMenuAction, string>> = {
+  'desain-skema': 'DesainSkema',
+}
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -20,7 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
   render: {
     antialias: true,
   },
-  scene: [Boot, Splash, Home],
+  scene: [Boot, Splash, Home, DesainSkema],
 }
 
 let game: Phaser.Game | null = null
@@ -81,6 +87,14 @@ function bindViewportListeners(bind: boolean) {
   window.visualViewport?.[method]('resize', scheduleStageSync)
 }
 
+// Home deliberately never navigates itself (see Home.ts's exitTo docstring) — it
+// only announces the chosen menu action once its exit animation has finished.
+// This is the one place that turns that announcement into a scene switch.
+function onHomeExitComplete(action: HomeMenuAction) {
+  const target = HOME_DESTINATIONS[action]
+  if (target) game?.scene.start(target)
+}
+
 export function StartGame(parent: string | HTMLElement): Phaser.Game {
   if (game) return game
 
@@ -95,12 +109,14 @@ export function StartGame(parent: string | HTMLElement): Phaser.Game {
   })
   bindViewportListeners(true)
   audio.attach(game)
+  EventBus.on('home-exit-complete', onHomeExitComplete)
 
   return game
 }
 
 export function StopGame() {
   bindViewportListeners(false)
+  EventBus.off('home-exit-complete', onHomeExitComplete)
   window.cancelAnimationFrame(syncFrame)
   window.clearTimeout(syncTimer)
   audio.detach()
