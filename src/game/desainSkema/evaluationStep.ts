@@ -143,6 +143,17 @@ export class EvaluationStep {
   private body!: Phaser.GameObjects.Container
   private ctx: UiContext
   private onExitHome: () => void
+  /**
+   * True while a card is mid fadeUpOut, on its way to being replaced. These
+   * nav buttons (Mulai/Soal Berikutnya/Lihat Hasil/Coba Lagi) drive their own
+   * local transition instead of the scene's `transitioning` lock, and
+   * attachButtonBehaviour's re-press guard only covers the ~90ms press
+   * animation — a second tap landing during the ~180ms fade-out re-fired
+   * fadeUpOut on content already fading out, so two onComplete callbacks both
+   * rendered the next card and raced to build/destroy it. That double render
+   * was the intermittent "answer, then double-tap Soal Berikutnya" crash.
+   */
+  private navigating = false
 
   constructor(ctx: UiContext, onExitHome: () => void) {
     this.ctx = ctx
@@ -283,6 +294,8 @@ export class EvaluationStep {
     content.add(cardContainer)
 
     const startBtn = buildActionButton(this.ctx, 'Mulai Evaluasi →', EVAL_CENTER_X, EVAL_INTRO_CARD_TOP + cardHeight + 56, 320, 'primary', () => {
+      if (this.navigating) return
+      this.navigating = true
       audio.play('click')
       fadeUpOut(this.scene, content, 180, 20, () => this.startCountdown())
     })
@@ -410,6 +423,9 @@ export class EvaluationStep {
     state.contentInteractives = []
     state.content?.destroy(true)
     state.content = undefined
+    // A new card is about to render — whichever nav button triggered it is
+    // free to fire again.
+    this.navigating = false
   }
 
   private renderQuizQuestion(index: number) {
@@ -620,6 +636,8 @@ export class EvaluationStep {
         260,
         'primary',
         () => {
+          if (this.navigating) return
+          this.navigating = true
           audio.play('click')
           fadeUpOut(this.scene, content, 180, 20, () => {
             if (isLast) this.renderEvaluationResult()
@@ -791,6 +809,8 @@ export class EvaluationStep {
 
     const buttonY = cardTop + RESULT_CARD_HEIGHT + 60
     const retryBtn = buildActionButton(this.ctx, 'Coba Lagi', EVAL_CENTER_X - 132, buttonY, 240, 'primary', () => {
+      if (this.navigating) return
+      this.navigating = true
       audio.play('click')
       fadeUpOut(this.scene, content, 180, 20, () => this.resetEvaluation())
     })

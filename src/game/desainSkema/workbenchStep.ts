@@ -91,6 +91,8 @@ interface WorkbenchState {
   paletteHome: Map<string, { x: number; y: number }>
   /** Holds every palette row (+ the etiket row) and gets masked/scrolled as one unit. */
   paletteContainer?: Phaser.GameObjects.Container
+  /** Mask source for `paletteContainer`. Kept off the display list (see layoutPalette) so it never renders itself, but the WebGL filter mask still needs it destroyed by hand — `body.removeAll(true)` cannot reach it. */
+  paletteMask?: Phaser.GameObjects.Graphics
   paletteScrollY: number
 
   // The etiket: not a circuit slot, so it's tracked separately from everything above.
@@ -232,6 +234,10 @@ export class WorkbenchStep {
     state.paletteRows.forEach((row) => this.scene.tweens.killTweensOf(row))
     state.etiketGhost?.pulse.remove()
     if (state.etiketRow) this.scene.tweens.killTweensOf(state.etiketRow)
+
+    // Off the display list (see layoutPalette) — body.removeAll(true) never
+    // reaches it, so it has to be destroyed by hand or it leaks every visit.
+    state.paletteMask?.destroy()
 
     // Registered once per render — never left attached across a step change,
     // or scrolling on materi/a later level would fire this level's now-destroyed handler.
@@ -542,13 +548,22 @@ export class WorkbenchStep {
     this.body.add(container)
     state.paletteContainer = container
 
-    const maskShape = this.scene.add
-      .graphics()
+    // Phaser 4's WebGL renderer doesn't support the old Components.Mask
+    // (setMask/createGeometryMask) — it silently no-ops there and warns
+    // "not supported in WebGL". The replacement is a Filter Mask: it
+    // renders a source GameObject to a texture and multiplies it into the
+    // filtered object's alpha. The source graphic is built via `make`
+    // (not `add`) so it never joins the display list and paints itself as
+    // a stray white rectangle — the filter's own DynamicTexture capture
+    // reads it directly regardless.
+    const maskShape = this.scene.make
+      .graphics({}, false)
       .fillStyle(0xffffff, 1)
       .fillRect(LEFT_PANEL_X, PALETTE_VIEWPORT_TOP, LEFT_PANEL_WIDTH, PALETTE_VIEWPORT_HEIGHT)
-    maskShape.setVisible(false)
-    this.body.add(maskShape)
-    container.setMask(maskShape.createGeometryMask())
+    state.paletteMask = maskShape
+
+    container.enableFilters()
+    container.filters!.internal.addMask(maskShape)
 
     level.palette.forEach((item, index) => {
       const y = PALETTE_TOP + index * (PALETTE_ROW_HEIGHT + PALETTE_ROW_GAP) + PALETTE_ROW_HEIGHT / 2

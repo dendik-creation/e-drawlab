@@ -8,6 +8,61 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Temporary on-device diagnostic overlay. Open the site with ?debug=1
+      // (e.g. https://edrawlab.projectmendoan.my.id/?debug=1) on a phone that
+      // has no way to attach a real DevTools console, and every error/warning
+      // prints straight onto the screen instead. Inert unless that query
+      // param is present — safe to leave committed. Delete this block (and
+      // the matching </script> below) once the mobile bug is diagnosed.
+      if (/[?&]debug(=1)?(&|$)/.test(location.search)) {
+        var box = document.createElement('pre')
+        box.style.cssText =
+          'position:fixed;left:0;right:0;bottom:0;max-height:45vh;margin:0;' +
+          'overflow:auto;z-index:2147483647;background:rgba(0,0,0,.85);' +
+          'color:#0f0;font:11px/1.4 monospace;padding:6px;white-space:pre-wrap;' +
+          'word-break:break-word;pointer-events:auto;'
+        document.addEventListener('DOMContentLoaded', function () {
+          document.body.appendChild(box)
+        })
+        var log = function (tag, args) {
+          var line = document.createElement('div')
+          if (tag === 'ERROR') line.style.color = '#ff6b6b'
+          else if (tag === 'WARN') line.style.color = '#ffd166'
+          line.textContent =
+            '[' + new Date().toISOString().slice(11, 19) + '] ' +
+            tag + ' ' +
+            Array.prototype.map
+              .call(args, function (a) {
+                try {
+                  return typeof a === 'string' ? a : JSON.stringify(a)
+                } catch (e) {
+                  return String(a)
+                }
+              })
+              .join(' ')
+          box.appendChild(line)
+          box.scrollTop = box.scrollHeight
+        }
+        window.addEventListener('error', function (e) {
+          log('ERROR', [e.message || e.error, e.filename ? '@' + e.filename + ':' + e.lineno : ''])
+        })
+        window.addEventListener('unhandledrejection', function (e) {
+          log('PROMISE', [e.reason && (e.reason.stack || e.reason.message || e.reason)])
+        })
+        var origError = console.error
+        var origWarn = console.warn
+        console.error = function () {
+          log('ERROR', arguments)
+          origError.apply(console, arguments)
+        }
+        console.warn = function () {
+          log('WARN', arguments)
+          origWarn.apply(console, arguments)
+        }
+        log('INFO', ['debug overlay active'])
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
