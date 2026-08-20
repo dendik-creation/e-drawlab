@@ -73,36 +73,18 @@ const QUIZ_WRONG_BORDER = 0xd9534f
 const QUIZ_WRONG_TEXT = '#c0392b'
 const QUIZ_NEUTRAL_BORDER = 0x0c6179
 
-/** Decorative background icons scattered either side of the quiz card — "bintang-bintang kecil" that idly rock back and forth. */
-const STAR_TEXTURES = [
-  'elec-resistor',
-  'elec-capacitor',
-  'elec-diode',
-  'elec-led',
-  'elec-ic-chip',
-  'elec-ic-chip-orange',
-  'elec-inductor',
-  'elec-opamp',
-  'elec-terminal-block',
-  'elec-usb-connector',
-  'elec-pcb-trace',
-  'elec-battery',
-  'elec-cube',
-]
-const STAR_ZONE_LEFT = { xMin: 60, xMax: EVAL_CARD_LEFT - 50 }
-const STAR_ZONE_RIGHT = { xMin: EVAL_CARD_LEFT + EVAL_CARD_WIDTH + 50, xMax: DESIGN_WIDTH - 60 }
-const STAR_Y_MIN = 170
-const STAR_Y_MAX = 1010
-/** Spread evenly across this many vertical bands (one star per band, jittered) so icons fill both margins top-to-bottom instead of clustering. */
-const STAR_COUNT_PER_SIDE = 11
-const STAR_SIZE_MIN = 36
-const STAR_SIZE_MAX = 64
-const STAR_ALPHA_MIN = 0.16
-const STAR_ALPHA_MAX = 0.34
-const STAR_ROTATE_MIN = 12
-const STAR_ROTATE_MAX = 34
-const STAR_ROTATE_DURATION_MIN = 2200
-const STAR_ROTATE_DURATION_MAX = 4200
+/**
+ * Decorative background art filling the empty margins either side of the
+ * quiz card: two pre-baked static images (already faded/scattered — see
+ * assets/.../grouped/01_Design_Schema/Evaluation), not a runtime-scattered,
+ * per-icon-animated field. That version (up to 22 images each with its own
+ * perpetual rock-back-and-forth tween) was a steady, purely decorative drain
+ * on mobile FPS for the entire evaluasi step; a static image costs nothing
+ * once drawn.
+ */
+const SIDE_ART_Y = 170
+const STAR_ZONE_LEFT_X = 60
+const STAR_ZONE_RIGHT_X = DESIGN_WIDTH - 60
 
 /** Icons the results card can randomly show, grouped by how well the learner did. */
 const RESULT_ICONS: Record<ScoreTier, string[]> = {
@@ -115,14 +97,12 @@ const RESULT_CARD_WIDTH = 560
 const RESULT_CARD_HEIGHT = 340
 const RESULT_CARD_TOP = 250
 
-/** Runtime state for the Langkah 3 quiz — question progress, score, and the decorative background icons. */
+/** Runtime state for the Langkah 3 quiz — question progress and score. */
 interface EvaluationState {
   questions: QuizQuestion[]
   index: number
   score: number
   answered: boolean
-  decoration: Phaser.GameObjects.Container
-  decorationTweens: Phaser.Tweens.Tween[]
   /** Current intro/countdown/question/result card — swapped out wholesale on navigation. */
   content?: Phaser.GameObjects.Container
   /** Buttons/pills belonging to `content`, tracked so they can be pruned from the shared interactive registry before it's destroyed. */
@@ -167,16 +147,13 @@ export class EvaluationStep {
   render(body: Phaser.GameObjects.Container) {
     this.body = body
 
-    const { container, tweens } = this.buildEvaluationDecoration()
-    body.add(container)
+    body.add(this.buildEvaluationDecoration())
 
     this.state = {
       questions: shuffleQuestions(EVALUATION_QUESTIONS),
       index: 0,
       score: 0,
       answered: false,
-      decoration: container,
-      decorationTweens: tweens,
       contentInteractives: [],
       countdownTimers: [],
     }
@@ -184,12 +161,11 @@ export class EvaluationStep {
     this.renderEvaluationIntro()
   }
 
-  /** Same reasoning as WorkbenchStep.teardown(): the decorative stars, any pending countdown step, and in-flight quiz-content tweens must stop before their targets are destroyed. */
+  /** Same reasoning as WorkbenchStep.teardown(): any pending countdown step and in-flight quiz-content tweens must stop before their targets are destroyed. */
   teardown() {
     const state = this.state
     if (!state) return
 
-    state.decorationTweens.forEach((tween) => tween.remove())
     state.countdownTimers.forEach((timer) => timer.remove(false))
     state.countdownTimers = []
     if (state.countdownText) this.scene.tweens.killTweensOf(state.countdownText)
@@ -374,46 +350,11 @@ export class EvaluationStep {
     this.renderQuizQuestion(0)
   }
 
-  /** Faint rotating component icons scattered either side of the quiz card — "bintang-bintang kecil" filling the empty margins. */
+  /** Two static images filling the empty margins either side of the quiz card — see the const comment above SIDE_ART_Y. */
   private buildEvaluationDecoration() {
-    const container = this.scene.add.container(0, 0)
-    const tweens: Phaser.Tweens.Tween[] = []
-    ;[STAR_ZONE_LEFT, STAR_ZONE_RIGHT].forEach((zone) => {
-      // One star per vertical band, jittered inside it — stratified sampling
-      // so the margin fills top-to-bottom instead of pure-random picks
-      // clumping by chance.
-      const bandHeight = (STAR_Y_MAX - STAR_Y_MIN) / STAR_COUNT_PER_SIDE
-      for (let i = 0; i < STAR_COUNT_PER_SIDE; i++) {
-        const texture = Phaser.Utils.Array.GetRandom(STAR_TEXTURES)
-        const size = Phaser.Math.Between(STAR_SIZE_MIN, STAR_SIZE_MAX)
-        const x = Phaser.Math.Between(zone.xMin, zone.xMax)
-        const bandTop = STAR_Y_MIN + i * bandHeight
-        const y = Phaser.Math.Between(Math.round(bandTop), Math.round(bandTop + bandHeight))
-        const alpha = Phaser.Math.FloatBetween(STAR_ALPHA_MIN, STAR_ALPHA_MAX)
-        const baseAngle = Phaser.Math.Between(-20, 20)
-        const swing = Phaser.Math.Between(STAR_ROTATE_MIN, STAR_ROTATE_MAX)
-        const duration = Phaser.Math.Between(STAR_ROTATE_DURATION_MIN, STAR_ROTATE_DURATION_MAX)
-
-        const icon = coverFit(this.scene.add.image(x, y, texture), size, size)
-          .setAlpha(alpha)
-          .setAngle(baseAngle - swing)
-        container.add(icon)
-
-        tweens.push(
-          this.scene.tweens.add({
-            targets: icon,
-            angle: baseAngle + swing,
-            duration,
-            delay: Phaser.Math.Between(0, 600),
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut',
-          }),
-        )
-      }
-    })
-
-    return { container, tweens }
+    const left = this.scene.add.image(STAR_ZONE_LEFT_X, SIDE_ART_Y, 'eval-left-side').setOrigin(0, 0)
+    const right = this.scene.add.image(STAR_ZONE_RIGHT_X, SIDE_ART_Y, 'eval-right-side').setOrigin(1, 0)
+    return this.scene.add.container(0, 0, [left, right])
   }
 
   /** Destroys the current question/result card and prunes its buttons from the shared interactive registry before they're gone. */

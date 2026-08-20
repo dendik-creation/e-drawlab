@@ -141,43 +141,19 @@ export function drawWireProgress(
   gfx.strokePath()
 }
 
-const DASH_LENGTH = 10
-const DASH_GAP = 8
-/** One full repeat of the dash pattern, in px — an animated offset of exactly this loops seamlessly. */
-export const DASH_PATTERN = DASH_LENGTH + DASH_GAP
 const DASH_COLOR = 0xcdf5e2
 
 /**
- * A lighter dash pattern marching along a completed wire — "current flowing"
- * once the trail-line reveal finishes. `offset` (any real number, wraps via
- * modulo) is animated continuously by the caller to make the dashes travel.
+ * "Current flowing" overlay once a wire's trail-line reveal finishes: one
+ * plain, full-length line — no dash pattern, no animation. Replaces an
+ * earlier marching-dash version that redrew every frame forever; this is a
+ * single static draw per wire.
  */
-export function drawWireDashOverlay(
-  gfx: Phaser.GameObjects.Graphics,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  offset: number,
-) {
+export function drawWireFlowOverlay(gfx: Phaser.GameObjects.Graphics, from: { x: number; y: number }, to: { x: number; y: number }) {
   gfx.clear()
-
-  const dx = to.x - from.x
-  const dy = to.y - from.y
-  const length = Math.hypot(dx, dy)
-  if (length < 1) return
-
-  const ux = dx / length
-  const uy = dy / length
-  const wrappedOffset = ((offset % DASH_PATTERN) + DASH_PATTERN) % DASH_PATTERN
-
   gfx.lineStyle(4, DASH_COLOR, 0.85)
-  for (let start = wrappedOffset - DASH_PATTERN; start < length; start += DASH_PATTERN) {
-    const segStart = Math.max(start, 0)
-    const segEnd = Math.min(start + DASH_LENGTH, length)
-    if (segEnd <= segStart) continue
-
-    gfx.beginPath()
-    gfx.moveTo(from.x + ux * segStart, from.y + uy * segStart)
-    gfx.lineTo(from.x + ux * segEnd, from.y + uy * segEnd)
-    gfx.strokePath()
-  }
+  gfx.beginPath()
+  gfx.moveTo(from.x, from.y)
+  gfx.lineTo(to.x, to.y)
+  gfx.strokePath()
 }

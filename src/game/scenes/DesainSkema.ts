@@ -32,6 +32,8 @@ import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.p
 import paperWork1Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_1.png'
 import paperWork2Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_2.png'
 import paperWork3Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_3.png'
+import evalLeftSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/left-side-electronics.png'
+import evalRightSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/right-side-electronic.png'
 
 /** Textures this whole module draws. Kept separate from Home's texture map so each module preloads only what it needs. */
 const DESAIN_SKEMA_TEXTURES: Record<string, string> = {
@@ -56,6 +58,8 @@ const DESAIN_SKEMA_TEXTURES: Record<string, string> = {
   'paper-work-1': paperWork1Url,
   'paper-work-2': paperWork2Url,
   'paper-work-3': paperWork3Url,
+  'eval-left-side': evalLeftSideUrl,
+  'eval-right-side': evalRightSideUrl,
 }
 
 export function queueDesainSkemaTextures(scene: Phaser.Scene) {

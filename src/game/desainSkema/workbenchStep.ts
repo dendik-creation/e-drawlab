@@ -18,8 +18,7 @@ import {
   drawBatterySymbol,
   drawJunctionDot,
   drawWireProgress,
-  drawWireDashOverlay,
-  DASH_PATTERN,
+  drawWireFlowOverlay,
 } from './schematicSymbols'
 import {
   buildNextButton,
@@ -62,7 +61,6 @@ const PALETTE_WHEEL_FACTOR = 0.6
 
 const SNAP_RADIUS = 95
 const WIRE_DRAW_DURATION = 260
-const WIRE_DASH_LOOP_DURATION = 700
 
 /** Ghost drop-target box: centred on the slot, name label inside the box, below the symbol. */
 const GHOST_PAD = 16
@@ -82,10 +80,13 @@ interface WorkbenchState {
   drawnWires: Set<string>
   wireGraphics: Map<string, Phaser.GameObjects.Graphics>
   wireDashOverlays: Map<string, Phaser.GameObjects.Graphics>
-  wireDashTweens: Map<string, Phaser.Tweens.Tween>
   ghostPreviews: Map<string, Phaser.GameObjects.Graphics>
   ghostLabels: Map<string, Phaser.GameObjects.Text>
   ghostPulses: Map<string, Phaser.Tweens.Tween>
+  /** Last painted highlight state per slot ghost — updateGhostHighlights skips the Graphics repaint when this hasn't changed, since it's called on every drag pointermove. */
+  ghostHighlighted: Map<string, boolean>
+  /** Same repaint-skip as ghostHighlighted, for the single etiket drop-target ghost. */
+  etiketHighlighted: boolean
   junctionGraphics: Phaser.GameObjects.Graphics[]
   paletteRows: Map<string, Phaser.GameObjects.Container>
   paletteHome: Map<string, { x: number; y: number }>
@@ -157,10 +158,11 @@ export class WorkbenchStep {
       drawnWires: new Set(),
       wireGraphics: new Map(),
       wireDashOverlays: new Map(),
-      wireDashTweens: new Map(),
       ghostPreviews: new Map(),
       ghostLabels: new Map(),
       ghostPulses: new Map(),
+      ghostHighlighted: new Map(),
+      etiketHighlighted: false,
       junctionGraphics: [],
       paletteRows: new Map(),
       paletteHome: new Map(),
@@ -216,21 +218,21 @@ export class WorkbenchStep {
 
   /**
    * Stops every tween this workbench has in flight (ghost idle pulses,
-   * palette-row reflow, the marching-dash loops) before its graphics get
-   * destroyed. These are all counters or explicitly-tracked tweens — the
-   * ghost pulses and dash loops repeat forever and would otherwise outlive
-   * their Graphics. Wire-*reveal* tweens are the one exception: they're
-   * anonymous counters with no handle to remove, so `revealReadyWires`'s
-   * onUpdate guards itself with `gfx.active` instead. Without this, clicking
-   * Lanjut right after finishing a sheet could tear down a Graphics object
-   * mid-tween and crash on the next draw call.
+   * palette-row reflow) before its graphics get destroyed. These are all
+   * explicitly-tracked tweens — the ghost pulses repeat forever and would
+   * otherwise outlive their Graphics. Wire-*reveal* tweens are the one
+   * exception: they're anonymous counters with no handle to remove, so
+   * `revealReadyWires`'s onUpdate guards itself with `gfx.active` instead.
+   * Without this, clicking Lanjut right after finishing a sheet could tear
+   * down a Graphics object mid-tween and crash on the next draw call. (The
+   * wire-flow overlay itself is a one-shot static draw now, not a loop — see
+   * drawWireFlow — so it needs no teardown of its own.)
    */
   teardown() {
     const state = this.state
     if (!state) return
 
     state.ghostPulses.forEach((tween) => tween.remove())
-    state.wireDashTweens.forEach((tween) => tween.remove())
     state.paletteRows.forEach((row) => this.scene.tweens.killTweensOf(row))
     state.etiketGhost?.pulse.remove()
     if (state.etiketRow) this.scene.tweens.killTweensOf(state.etiketRow)
@@ -302,7 +304,7 @@ export class WorkbenchStep {
       this.state.wireGraphics.set(wire.id, gfx)
 
       // Sits above the solid wire, dashes marching along it once the reveal
-      // finishes — see startWireDashLoop.
+      // finishes — see drawWireFlow.
       const overlay = this.scene.add.graphics()
       this.body.add(overlay)
       this.state.wireDashOverlays.set(wire.id, overlay)
@@ -406,6 +408,13 @@ export class WorkbenchStep {
   }
 
   /** Live "you're about to drop here" feedback while a matching component is being dragged. */
+  /**
+   * Called on every drag pointermove — a Graphics repaint (clear + rebuild
+   * fill/stroke) for every empty slot on every single move event was the
+   * main reason dragging a component to the sheet felt heavy on mobile.
+   * Repainting only the slots whose highlight state actually flipped cuts
+   * that down to (usually) zero redraws per move.
+   */
   private updateGhostHighlights(activeItem: PaletteItem | null, x: number | null, y: number | null) {
     const state = this.state
 
@@ -421,6 +430,8 @@ export class WorkbenchStep {
         activeItem.kind === slot.kind &&
         Phaser.Math.Distance.Between(x, y, slot.x, slot.y) <= SNAP_RADIUS
       )
+      if (state.ghostHighlighted.get(slot.id) === highlighted) return
+      state.ghostHighlighted.set(slot.id, highlighted)
       this.paintGhostBox(box, slot, highlighted)
     })
   }
@@ -493,14 +504,18 @@ export class WorkbenchStep {
   }
 
   /** Live drop-target feedback while the etiket itself is being dragged. */
+  /** Same repaint-skip reasoning as updateGhostHighlights — this also fires on every drag pointermove. */
   private updateEtiketHighlight(x: number | null, y: number | null) {
-    const ghost = this.state.etiketGhost
+    const state = this.state
+    const ghost = state.etiketGhost
     if (!ghost) return
 
-    const rect = this.state.etiketRect
+    const rect = state.etiketRect
     const cx = rect.x + rect.width / 2
     const cy = rect.y + rect.height / 2
     const highlighted = x !== null && y !== null && Phaser.Math.Distance.Between(x, y, cx, cy) <= ETIKET_SNAP_RADIUS
+    if (state.etiketHighlighted === highlighted) return
+    state.etiketHighlighted = highlighted
     this.paintEtiketGhostBox(ghost.box, rect, highlighted)
   }
 
@@ -557,22 +572,39 @@ export class WorkbenchStep {
     this.body.add(container)
     state.paletteContainer = container
 
-    // Phaser 4's WebGL renderer doesn't support the old Components.Mask
-    // (setMask/createGeometryMask) — it silently no-ops there and warns
-    // "not supported in WebGL". The replacement is a Filter Mask: it
-    // renders a source GameObject to a texture and multiplies it into the
-    // filtered object's alpha. The source graphic is built via `make`
-    // (not `add`) so it never joins the display list and paints itself as
-    // a stray white rectangle — the filter's own DynamicTexture capture
-    // reads it directly regardless.
-    const maskShape = this.scene.make
-      .graphics({}, false)
-      .fillStyle(0xffffff, 1)
-      .fillRect(LEFT_PANEL_X, PALETTE_VIEWPORT_TOP, LEFT_PANEL_WIDTH, PALETTE_VIEWPORT_HEIGHT)
-    state.paletteMask = maskShape
+    // A Filter Mask forces Phaser to render this container to an offscreen
+    // texture every single frame just to composite it back — on mobile GPUs
+    // (already pushed by the DPR-2x supersample every scene renders at) that
+    // extra full-container pass, sustained for as long as the step is open,
+    // was the single biggest contributor to the mobile FPS drop reported
+    // here. Levels 1-2's palette (battery/resistor/led(s)/distractor +
+    // etiket) always fits inside the viewport without scrolling, so the mask
+    // — and the wheel listener that only matters once scrolling is possible
+    // — is skipped entirely there. Only level 3's fuller list still needs it.
+    const rowCount = level.palette.length + 1 // + the trailing etiket row
+    const contentHeight = rowCount * (PALETTE_ROW_HEIGHT + PALETTE_ROW_GAP) - PALETTE_ROW_GAP
+    const scrollable = contentHeight > PALETTE_VIEWPORT_HEIGHT
 
-    container.enableFilters()
-    container.filters!.internal.addMask(maskShape)
+    if (scrollable) {
+      // Phaser 4's WebGL renderer doesn't support the old Components.Mask
+      // (setMask/createGeometryMask) — it silently no-ops there and warns
+      // "not supported in WebGL". The replacement is a Filter Mask: it
+      // renders a source GameObject to a texture and multiplies it into the
+      // filtered object's alpha. The source graphic is built via `make`
+      // (not `add`) so it never joins the display list and paints itself as
+      // a stray white rectangle — the filter's own DynamicTexture capture
+      // reads it directly regardless.
+      const maskShape = this.scene.make
+        .graphics({}, false)
+        .fillStyle(0xffffff, 1)
+        .fillRect(LEFT_PANEL_X, PALETTE_VIEWPORT_TOP, LEFT_PANEL_WIDTH, PALETTE_VIEWPORT_HEIGHT)
+      state.paletteMask = maskShape
+
+      container.enableFilters()
+      container.filters!.internal.addMask(maskShape)
+
+      this.scene.input.on('wheel', this.wheelHandler)
+    }
 
     level.palette.forEach((item, index) => {
       const y = PALETTE_TOP + index * (PALETTE_ROW_HEIGHT + PALETTE_ROW_GAP) + PALETTE_ROW_HEIGHT / 2
@@ -596,8 +628,6 @@ export class WorkbenchStep {
     state.etiketLockOverlay = lockOverlay
     state.etiketHome = { x: PALETTE_CENTER_X, y: etiketY }
     state.etiketLocked = true
-
-    this.scene.input.on('wheel', this.wheelHandler)
   }
 
   private paletteRowCount() {
@@ -1068,7 +1098,7 @@ export class WorkbenchStep {
           if (!gfx.active) return
           drawWireProgress(gfx, from, to, tween.getValue() ?? 0)
         },
-        onComplete: () => this.startWireDashLoop(wire.id, from, to),
+        onComplete: () => this.drawWireFlow(wire.id, from, to),
       })
     })
 
@@ -1077,26 +1107,18 @@ export class WorkbenchStep {
     }
   }
 
-  /** Starts (or restarts) the marching-dash "current flowing" overlay on one completed wire. */
-  private startWireDashLoop(wireId: string, from: { x: number; y: number }, to: { x: number; y: number }) {
-    const state = this.state
-    const overlay = state.wireDashOverlays.get(wireId)
+  /**
+   * "Current flowing" overlay on one completed wire: one plain solid line,
+   * drawn once. This used to be a marching-dash pattern redrawn every frame
+   * forever (up to 12 wires on level 3, each clearing and rebuilding its
+   * Graphics' vertex data on every tick) — a steady, avoidable drain on
+   * mobile for a purely decorative loop. A single static draw gets the same
+   * "wire is live" read at zero ongoing cost.
+   */
+  private drawWireFlow(wireId: string, from: { x: number; y: number }, to: { x: number; y: number }) {
+    const overlay = this.state.wireDashOverlays.get(wireId)
     if (!overlay) return
-
-    state.wireDashTweens.get(wireId)?.remove()
-
-    const tween = this.scene.tweens.addCounter({
-      from: 0,
-      to: 1,
-      duration: WIRE_DASH_LOOP_DURATION,
-      repeat: -1,
-      ease: 'Linear',
-      onUpdate: (t) => {
-        if (!overlay.active) return
-        drawWireDashOverlay(overlay, from, to, (t.getValue() ?? 0) * DASH_PATTERN)
-      },
-    })
-    state.wireDashTweens.set(wireId, tween)
+    drawWireFlowOverlay(overlay, from, to)
   }
 
   /** Recentres the remaining, still-unplaced palette rows so a used slot doesn't leave a gap. */
@@ -1139,7 +1161,7 @@ export class WorkbenchStep {
       const from = resolveWireEnd(wire.from, level.slots)
       const to = resolveWireEnd(wire.to, level.slots)
       drawWireProgress(gfx, from, to, 1)
-      this.startWireDashLoop(wire.id, from, to)
+      this.drawWireFlow(wire.id, from, to)
     })
     state.junctionGraphics.forEach((dot) => dot.setAlpha(1))
 
