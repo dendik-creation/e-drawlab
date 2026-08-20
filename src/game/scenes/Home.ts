@@ -19,9 +19,9 @@ import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.png'
 import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.png'
 import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.png'
 import menuDesainSkemaUrl from '../../../assets/images/01_menu_buttons/menu_desain_skema.png'
-import menuModel3dUrl from '../../../assets/images/01_menu_buttons/menu_model_3d.png'
-import menuKomponenUrl from '../../../assets/images/01_menu_buttons/menu_komponen.png'
-import menuPengaturanUrl from '../../../assets/images/01_menu_buttons/menu_pengaturan.png'
+import menuJalurPcbUrl from '../../../assets/images/01_menu_buttons/menu_jalur_pcb.png'
+import menuCadCasingUrl from '../../../assets/images/01_menu_buttons/menu_cad_casing.png'
+import menuEvaluasiAkhirUrl from '../../../assets/images/01_menu_buttons/menu_evaluasi_akhir.png'
 import menuKeluarUrl from '../../../assets/images/01_menu_buttons/menu_keluar.png'
 import badgeChecklistUrl from '../../../assets/images/03_electronic_assets/badge_checklist.png'
 
@@ -34,9 +34,9 @@ const HOME_TEXTURES: Record<string, string> = {
   'bgm-on': bgmOnUrl,
   'bgm-off': bgmOffUrl,
   'menu-desain-skema': menuDesainSkemaUrl,
-  'menu-model-3d': menuModel3dUrl,
-  'menu-komponen': menuKomponenUrl,
-  'menu-pengaturan': menuPengaturanUrl,
+  'menu-jalur-pcb': menuJalurPcbUrl,
+  'menu-cad-casing': menuCadCasingUrl,
+  'menu-evaluasi-akhir': menuEvaluasiAkhirUrl,
   'menu-keluar': menuKeluarUrl,
   'badge-checklist': badgeChecklistUrl,
 }
@@ -129,9 +129,9 @@ const PRESS_UP_DURATION = 180
 /** Menu entries in design-space geometry, top to bottom, sliced from the Figma frame. */
 const MENU_ITEMS = [
   { action: 'desain-skema', texture: 'menu-desain-skema', x: 444.5, y: 343, width: 337, height: 88 },
-  { action: 'model-3d', texture: 'menu-model-3d', x: 444.5, y: 452, width: 337, height: 88 },
-  { action: 'komponen', texture: 'menu-komponen', x: 444.5, y: 561.5, width: 337, height: 89 },
-  { action: 'pengaturan', texture: 'menu-pengaturan', x: 445, y: 672.5, width: 338, height: 91 },
+  { action: 'jalur-pcb', texture: 'menu-jalur-pcb', x: 444.5, y: 452, width: 337, height: 89 },
+  { action: 'cad-casing', texture: 'menu-cad-casing', x: 444.5, y: 561.5, width: 341, height: 89 },
+  { action: 'evaluasi-akhir', texture: 'menu-evaluasi-akhir', x: 445, y: 672.5, width: 331, height: 89 },
   { action: 'keluar', texture: 'menu-keluar', x: 444.5, y: 782.5, width: 337, height: 95 },
 ] as const
 

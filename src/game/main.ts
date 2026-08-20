@@ -91,6 +91,13 @@ function bindViewportListeners(bind: boolean) {
 // only announces the chosen menu action once its exit animation has finished.
 // This is the one place that turns that announcement into a scene switch.
 function onHomeExitComplete(action: HomeMenuAction) {
+  if (action === 'keluar') {
+    // Browsers only allow window.close() on tabs opened by script; if it's a
+    // no-op (e.g. a normally-navigated tab), there's no further fallback.
+    window.close()
+    return
+  }
+
   const target = HOME_DESTINATIONS[action]
   if (target) game?.scene.start(target)
 }
