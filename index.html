@@ -13,8 +13,8 @@
       // (e.g. https://edrawlab.projectmendoan.my.id/?debug=1) on a phone that
       // has no way to attach a real DevTools console, and every error/warning
       // prints straight onto the screen instead. Inert unless that query
-      // param is present — safe to leave committed. Delete this block (and
-      // the matching </script> below) once the mobile bug is diagnosed.
+      // param is present — safe to leave committed. Delete this whole block
+      // once the mobile bug is diagnosed.
       if (/[?&]debug(=1)?(&|$)/.test(location.search)) {
         var box = document.createElement('pre')
         box.style.cssText =
