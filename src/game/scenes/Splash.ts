@@ -32,16 +32,26 @@ const ENTRANCE_EASE = 'Back.easeOut'
 const BUTTON_WIDTH = 460
 const BUTTON_HEIGHT = 123
 
-// Idle affordance: a short bright segment that continuously chases around the
-// button's outline (an outset "trail" box, so it clears the button art).
-const TRAIL_WIDTH = BUTTON_WIDTH + 16
-const TRAIL_HEIGHT = BUTTON_HEIGHT + 16
-const TRAIL_RADIUS = 24
-const TRAIL_DURATION = 1800
-const TRAIL_LENGTH = 0.22
-const TRAIL_SEGMENTS = 12
-const TRAIL_STROKE_WIDTH = 4
-const TRAIL_ALPHA = 0.85
+// Idle affordance: three rings that burst out of the button's outline and fade,
+// a port of the CSS `box-shadow` pulse (three shadows, spreads 10/20/30 at
+// alphas .7/.5/.3, all reaching alpha 0 by the halfway keyframe). Spreads are
+// scaled to this button's design-space size, keeping the CSS ratio of roughly
+// 6.5% of the button's width per ring. Runs on a loop rather than on hover —
+// the splash button is the only thing to press, so it advertises itself.
+const PULSE_DURATION = 2000
+const PULSE_RADIUS = 24
+const PULSE_STROKE_WIDTH = 4
+const PULSE_RINGS = [
+  { spread: 24, alpha: 0.7 },
+  { spread: 48, alpha: 0.5 },
+  { spread: 72, alpha: 0.3 },
+]
+/**
+ * The visible burst is the CSS animation's first half; its second half only
+ * keeps expanding shadows that are already fully transparent, which reads as
+ * the rest between pulses.
+ */
+const PULSE_BURST_FRACTION = 0.5
 
 const HOVER_SCALE = 1.05
 const HOVER_DURATION = 150
@@ -97,7 +107,7 @@ export class Splash extends Phaser.Scene {
   private entering = false
   private gates?: { button: Gate; rotate: Gate }
   private activeGate: 'button' | 'rotate' | null = null
-  private trailTween?: Phaser.Tweens.Tween
+  private pulseTween?: Phaser.Tweens.Tween
   private phoneTween?: Phaser.Tweens.Tween
 
   constructor() {
@@ -246,8 +256,8 @@ export class Splash extends Phaser.Scene {
       onComplete: () => bubbleOutTargets.forEach((target) => target.destroy()),
     })
 
-    // Sits behind the button; drawn every frame by playTrailLoop() once the button is in.
-    const trail = this.add.graphics({ x: 960, y: 770.5 })
+    // Sits behind the button; drawn every frame by playPulseLoop() once the button is in.
+    const pulse = this.add.graphics({ x: 960, y: 770.5 })
 
     const button = coverFit(this.add.image(960, 770.5, 'btn-masuklab'), BUTTON_WIDTH, BUTTON_HEIGHT)
       .setInteractive({ useHandCursor: true })
@@ -277,8 +287,11 @@ export class Splash extends Phaser.Scene {
       if (this.entering) return
       this.entering = true
 
-      // This press is the browser's autoplay unlock point, so it is also where
+      // Both of these need the press's user-gesture context, so they happen
+      // before anything async: fullscreen is only grantable from a gesture,
+      // and this press is the browser's autoplay unlock point, which is where
       // the score and room tone are allowed to start.
+      this.enterFullscreen()
       audio.play('click')
       audio.setProfile('menu')
 
@@ -324,13 +337,13 @@ export class Splash extends Phaser.Scene {
         baseScaleY,
         onShown: () => {
           button.setInteractive({ useHandCursor: true })
-          this.trailTween = this.playTrailLoop(trail)
+          this.pulseTween = this.playPulseLoop(pulse)
         },
         onHidden: () => {
           button.disableInteractive()
-          this.trailTween?.remove()
-          this.trailTween = undefined
-          trail.clear()
+          this.pulseTween?.remove()
+          this.pulseTween = undefined
+          pulse.clear()
         },
       },
       rotate: {
@@ -478,79 +491,54 @@ export class Splash extends Phaser.Scene {
     })
   }
 
-  private playTrailLoop(trail: Phaser.GameObjects.Graphics) {
+  /**
+   * Takes the lab fullscreen on the way in. Deliberately silent: no prompt
+   * before, no notice after, and no fallback UI where the API is missing
+   * (iPhone Safari has no `Element.requestFullscreen`) — there the lab simply
+   * opens windowed. The resulting viewport change is picked up by the app's
+   * existing resize listeners, same as a rotation.
+   */
+  private enterFullscreen() {
+    if (!this.scale.fullscreen.available || this.scale.isFullscreen) return
+
+    try {
+      this.scale.startFullscreen()
+    } catch {
+      // Request refused (permissions policy, or a gesture the browser did not
+      // count) — entering the lab must not depend on it.
+    }
+  }
+
+  private playPulseLoop(pulse: Phaser.GameObjects.Graphics) {
     return this.tweens.addCounter({
       from: 0,
       to: 1,
-      duration: TRAIL_DURATION,
+      duration: PULSE_DURATION,
       repeat: -1,
       ease: 'Linear',
-      onUpdate: (tween) => this.drawBorderTrail(trail, tween.getValue() ?? 0),
+      onUpdate: (tween) => this.drawPulse(pulse, tween.getValue() ?? 0),
     })
   }
 
-  /** Draws a fading comet of short segments trailing behind `headT` along the outline. */
-  private drawBorderTrail(trail: Phaser.GameObjects.Graphics, headT: number) {
-    trail.clear()
+  /**
+   * One frame of the pulse: every ring starts on the button's own outline and
+   * grows to its own spread while fading out, so the three separate as they
+   * travel — the same read as the stacked CSS box-shadows.
+   */
+  private drawPulse(pulse: Phaser.GameObjects.Graphics, t: number) {
+    pulse.clear()
+    if (t >= PULSE_BURST_FRACTION) return
 
-    for (let i = 0; i < TRAIL_SEGMENTS; i++) {
-      const t0 = headT - (i / TRAIL_SEGMENTS) * TRAIL_LENGTH
-      const t1 = headT - ((i + 1) / TRAIL_SEGMENTS) * TRAIL_LENGTH
-      const p0 = this.roundedRectPoint(t0, TRAIL_WIDTH, TRAIL_HEIGHT, TRAIL_RADIUS)
-      const p1 = this.roundedRectPoint(t1, TRAIL_WIDTH, TRAIL_HEIGHT, TRAIL_RADIUS)
-      const alpha = TRAIL_ALPHA * (1 - i / TRAIL_SEGMENTS)
+    const progress = t / PULSE_BURST_FRACTION
 
-      trail
-        .lineStyle(TRAIL_STROKE_WIDTH, BORDER_COLOR, alpha)
-        .beginPath()
-        .moveTo(p0.x, p0.y)
-        .lineTo(p1.x, p1.y)
-        .strokePath()
-    }
-  }
+    PULSE_RINGS.forEach(({ spread, alpha }) => {
+      const grown = spread * progress
+      const width = BUTTON_WIDTH + grown * 2
+      const height = BUTTON_HEIGHT + grown * 2
 
-  /** Walks a point clockwise around a rounded rect's perimeter, `t` in [0, 1) starting at top-left. */
-  private roundedRectPoint(t: number, width: number, height: number, radius: number) {
-    const halfWidth = width / 2
-    const halfHeight = height / 2
-    const straightX = width - 2 * radius
-    const straightY = height - 2 * radius
-    const arc = (Math.PI / 2) * radius
-    const segments = [straightX, arc, straightY, arc, straightX, arc, straightY, arc]
-    const total = segments.reduce((sum, length) => sum + length, 0)
-
-    let distance = (((t % 1) + 1) % 1) * total
-    let segmentIndex = 0
-    while (distance > segments[segmentIndex]) {
-      distance -= segments[segmentIndex]
-      segmentIndex++
-    }
-
-    switch (segmentIndex) {
-      case 0:
-        return { x: -halfWidth + radius + distance, y: -halfHeight }
-      case 1: {
-        const angle = -Math.PI / 2 + distance / radius
-        return { x: halfWidth - radius + Math.cos(angle) * radius, y: -halfHeight + radius + Math.sin(angle) * radius }
-      }
-      case 2:
-        return { x: halfWidth, y: -halfHeight + radius + distance }
-      case 3: {
-        const angle = distance / radius
-        return { x: halfWidth - radius + Math.cos(angle) * radius, y: halfHeight - radius + Math.sin(angle) * radius }
-      }
-      case 4:
-        return { x: halfWidth - radius - distance, y: halfHeight }
-      case 5: {
-        const angle = Math.PI / 2 + distance / radius
-        return { x: -halfWidth + radius + Math.cos(angle) * radius, y: halfHeight - radius + Math.sin(angle) * radius }
-      }
-      case 6:
-        return { x: -halfWidth, y: halfHeight - radius - distance }
-      default: {
-        const angle = Math.PI + distance / radius
-        return { x: -halfWidth + radius + Math.cos(angle) * radius, y: -halfHeight + radius + Math.sin(angle) * radius }
-      }
-    }
+      pulse
+        .lineStyle(PULSE_STROKE_WIDTH, BORDER_COLOR, alpha * (1 - progress))
+        .strokeRoundedRect(-width / 2, -height / 2, width, height, PULSE_RADIUS + grown)
+    })
   }
 }
