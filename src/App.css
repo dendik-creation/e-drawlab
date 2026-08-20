@@ -6,4 +6,12 @@
   height: 100dvh;
   overflow: hidden;
   background: #faf3e7;
+  /* Without this, Android Chromium runs every touch through gesture
+     arbitration first (is this a tap, or the start of a scroll/pinch?) before
+     committing it as a pointer event — any hint of finger movement during
+     the tap, near-universal on a real touchscreen, and it loses the coin
+     flip and gets reclassified as a scroll, silently dropping the tap with
+     no JS error. The canvas has nothing to scroll or zoom, so there is no
+     gesture to arbitrate for. */
+  touch-action: none;
 }
