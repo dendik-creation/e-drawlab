@@ -3,7 +3,7 @@ import { EventBus } from '../EventBus'
 import { applyStageCamera } from '../stage'
 import { audio } from '../audio/AudioDirector'
 import { session } from '../state/session'
-import mainLogoUrl from '../../../assets/images/00_identity/main_logo.png'
+import mainLogoUrl from '../../../assets/images/00_identity/main_logo.webp'
 
 const REQUIRED_FONTS = [
   '800 48px "Baloo 2 Variable"',

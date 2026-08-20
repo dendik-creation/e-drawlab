@@ -5,7 +5,7 @@ import { coverFit } from '../coverFit'
 import { queueHomeTextures } from './Home'
 import { audio } from '../audio/AudioDirector'
 import { session, SESSION_CHANGED_EVENT } from '../state/session'
-import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.png'
+import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.webp'
 
 const TEXT_COLOR = '#0c6179'
 const BORDER_COLOR = 0x2b909f
@@ -507,6 +507,12 @@ export class Splash extends Phaser.Scene {
       // Request refused (permissions policy, or a gesture the browser did not
       // count) — entering the lab must not depend on it.
     }
+
+    // Best-effort: most browsers only grant Screen Orientation lock inside an
+    // active fullscreen session, and several (iOS Safari) never expose the
+    // API at all. Silently swallowed either way — the manual "please rotate"
+    // gate (applyOrientationGate) already covers the case where this fails.
+    screen.orientation?.lock?.('landscape').catch(() => {})
   }
 
   private playPulseLoop(pulse: Phaser.GameObjects.Graphics) {

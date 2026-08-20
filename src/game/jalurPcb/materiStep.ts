@@ -101,9 +101,15 @@ export class MateriStep {
       return built
     })
 
-    this.maskShape = scene.make.graphics({})
-    this.maskShape.fillStyle(0xffffff, 1).fillRect(0, VIEWPORT_TOP, DESIGN_WIDTH, VIEWPORT_HEIGHT)
-    this.scrollLayer.setMask(this.maskShape.createGeometryMask())
+    // Phaser 4's WebGL renderer doesn't support the old Components.Mask
+    // (setMask/createGeometryMask) — it silently no-ops there and warns "not
+    // supported in WebGL", so scrolled content was bleeding past the viewport
+    // uncapped. Filter Mask is the WebGL-correct replacement — see
+    // workbenchStep.ts's layoutPalette for the same fix with the fuller
+    // rationale.
+    this.maskShape = scene.make.graphics({}).fillStyle(0xffffff, 1).fillRect(0, VIEWPORT_TOP, DESIGN_WIDTH, VIEWPORT_HEIGHT)
+    this.scrollLayer.enableFilters()
+    this.scrollLayer.filters!.internal.addMask(this.maskShape)
 
     this.maxScroll = Math.max(0, contentHeight - VIEWPORT_HEIGHT)
 
@@ -143,6 +149,11 @@ export class MateriStep {
     this.onPointerMove = undefined
     this.onPointerUp = undefined
 
+    // Clear the filter before destroying its mask source graphic — the
+    // reverse order leaves the filter holding a dead GameObject and crashes
+    // the next render frame while this step's container is still fading out.
+    // Same ordering, same reason, as workbenchStep.ts's palette mask teardown.
+    this.scrollLayer?.filters?.internal.clear()
     this.maskShape?.destroy()
     this.maskShape = undefined
   }

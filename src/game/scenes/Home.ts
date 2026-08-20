@@ -15,15 +15,15 @@ import { audio } from '../audio/AudioDirector'
 import { settings, SETTINGS_CHANGED_EVENT, toggleMute } from '../state/settings'
 import { session } from '../state/session'
 import { isMenuCompleted } from '../state/progress'
-import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.png'
-import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.png'
-import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.png'
-import menuDesainSkemaUrl from '../../../assets/images/01_menu_buttons/menu_desain_skema.png'
-import menuJalurPcbUrl from '../../../assets/images/01_menu_buttons/menu_jalur_pcb.png'
-import menuCadCasingUrl from '../../../assets/images/01_menu_buttons/menu_cad_casing.png'
-import menuEvaluasiAkhirUrl from '../../../assets/images/01_menu_buttons/menu_evaluasi_akhir.png'
-import menuKeluarUrl from '../../../assets/images/01_menu_buttons/menu_keluar.png'
-import badgeChecklistUrl from '../../../assets/images/03_electronic_assets/badge_checklist.png'
+import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.webp'
+import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.webp'
+import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.webp'
+import menuDesainSkemaUrl from '../../../assets/images/01_menu_buttons/menu_desain_skema.webp'
+import menuJalurPcbUrl from '../../../assets/images/01_menu_buttons/menu_jalur_pcb.webp'
+import menuCadCasingUrl from '../../../assets/images/01_menu_buttons/menu_cad_casing.webp'
+import menuEvaluasiAkhirUrl from '../../../assets/images/01_menu_buttons/menu_evaluasi_akhir.webp'
+import menuKeluarUrl from '../../../assets/images/01_menu_buttons/menu_keluar.webp'
+import badgeChecklistUrl from '../../../assets/images/03_electronic_assets/badge_checklist.webp'
 
 /**
  * Textures the Home scene draws, minus `main-logo` which Boot already loads.
@@ -265,6 +265,12 @@ export class Home extends Phaser.Scene {
     this.events.once('shutdown', () => {
       EventBus.off(STAGE_RESIZE_EVENT, refit)
       EventBus.off(SETTINGS_CHANGED_EVENT, syncToggle)
+      // No texture release here on purpose: home-bg and main-logo are only
+      // this scene's own, but Home is the hub every journey exits back to —
+      // freeing them here would force a network refetch + re-decode on every
+      // single return trip. Leaving them resident is the better trade for a
+      // scene visited this often; see JalurPcb.ts's releaseJalurPcbTextures
+      // for the shutdown-release pattern where it does pay off.
     })
 
     EventBus.emit('current-scene-ready', this)

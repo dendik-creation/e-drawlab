@@ -12,31 +12,44 @@ import { DesainSkemaHeader } from '../desainSkema/header'
 import { MateriStep, materiEntranceDuration } from '../desainSkema/materiStep'
 import { WorkbenchStep } from '../desainSkema/workbenchStep'
 import { EvaluationStep } from '../desainSkema/evaluationStep'
-import elecResistorUrl from '../../../assets/images/03_electronic_assets/elec_resistor.png'
-import elecCapacitorUrl from '../../../assets/images/03_electronic_assets/elec_capacitor.png'
-import elecDiodeUrl from '../../../assets/images/03_electronic_assets/elec_diode.png'
-import elecLedUrl from '../../../assets/images/03_electronic_assets/elec_led.png'
-import elecIcChipUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip1.png'
-import elecIcChipOrangeUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip_orange.png'
-import elecInductorUrl from '../../../assets/images/03_electronic_assets/elec_inductor_coil.png'
-import elecOpampUrl from '../../../assets/images/03_electronic_assets/elec_opamp_triangle.png'
-import elecTerminalBlockUrl from '../../../assets/images/03_electronic_assets/elec_terminal_block_green.png'
-import elecUsbConnectorUrl from '../../../assets/images/03_electronic_assets/elec_usb_connector.png'
-import elecPcbTraceUrl from '../../../assets/images/03_electronic_assets/elec_pcb_trace_icon.png'
-import elecBatteryUrl from '../../../assets/images/03_electronic_assets/elec_battery.png'
-import elecEtiketUrl from '../../../assets/images/03_electronic_assets/elec_etiket.png'
-import elecCubeUrl from '../../../assets/images/03_electronic_assets/elec_3d_cube_icon.png'
-import goBackUrl from '../../../assets/images/02_global_buttons/go_back.png'
-import goHomeUrl from '../../../assets/images/02_global_buttons/go_home.png'
-import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.png'
-import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.png'
-import paperWork1Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_1.png'
-import paperWork2Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_2.png'
-import paperWork3Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_3.png'
-import evalLeftSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/left-side-electronics.png'
-import evalRightSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/right-side-electronic.png'
+import elecResistorUrl from '../../../assets/images/03_electronic_assets/elec_resistor.webp'
+import elecCapacitorUrl from '../../../assets/images/03_electronic_assets/elec_capacitor.webp'
+import elecDiodeUrl from '../../../assets/images/03_electronic_assets/elec_diode.webp'
+import elecLedUrl from '../../../assets/images/03_electronic_assets/elec_led.webp'
+import elecIcChipUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip1.webp'
+import elecIcChipOrangeUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip_orange.webp'
+import elecInductorUrl from '../../../assets/images/03_electronic_assets/elec_inductor_coil.webp'
+import elecOpampUrl from '../../../assets/images/03_electronic_assets/elec_opamp_triangle.webp'
+import elecTerminalBlockUrl from '../../../assets/images/03_electronic_assets/elec_terminal_block_green.webp'
+import elecUsbConnectorUrl from '../../../assets/images/03_electronic_assets/elec_usb_connector.webp'
+import elecPcbTraceUrl from '../../../assets/images/03_electronic_assets/elec_pcb_trace_icon.webp'
+import elecBatteryUrl from '../../../assets/images/03_electronic_assets/elec_battery.webp'
+import elecEtiketUrl from '../../../assets/images/03_electronic_assets/elec_etiket.webp'
+import elecCubeUrl from '../../../assets/images/03_electronic_assets/elec_3d_cube_icon.webp'
+import goBackUrl from '../../../assets/images/02_global_buttons/go_back.webp'
+import goHomeUrl from '../../../assets/images/02_global_buttons/go_home.webp'
+import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.webp'
+import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.webp'
+import paperWork1Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_1.webp'
+import paperWork2Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_2.webp'
+import paperWork3Url from '../../../assets/images/06_evaluation_pictures/01_Design_Schema/paper_work_3.webp'
+import evalLeftSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/left-side-electronics.webp'
+import evalRightSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/right-side-electronic.webp'
 
-/** Textures this whole module draws. Kept separate from Home's texture map so each module preloads only what it needs. */
+/**
+ * Textures this whole module draws. Kept separate from Home's texture map so
+ * each module preloads only what it needs.
+ *
+ * paper-work-1/2/3 look unused from a code grep alone — they're only ever
+ * referenced by key from evaluationQuestions.json's `images` arrays (all 9
+ * quiz questions use one), not from any .ts call site. Cross-check that file
+ * too before ever "cleaning up" one of these as dead.
+ *
+ * elec-*, go-back, go-home, bgm-on/off and eval-left-side/eval-right-side are
+ * shared with JalurPcb (see JALUR_PCB_IMAGES in scenes/JalurPcb.ts) — never
+ * remove them from a single scene's shutdown handler, or whichever of the two
+ * scenes loads second will render broken images.
+ */
 const DESAIN_SKEMA_TEXTURES: Record<string, string> = {
   'elec-resistor': elecResistorUrl,
   'elec-capacitor': elecCapacitorUrl,
@@ -66,6 +79,27 @@ const DESAIN_SKEMA_TEXTURES: Record<string, string> = {
 export function queueDesainSkemaTextures(scene: Phaser.Scene) {
   Object.entries(DESAIN_SKEMA_TEXTURES).forEach(([key, url]) => {
     if (!scene.textures.exists(key)) scene.load.image(key, url)
+  })
+}
+
+/**
+ * Keys this module loads that are exclusive to it — nothing else in the game
+ * ever draws a paper-work-* diagram (see DESAIN_SKEMA_TEXTURES's docstring:
+ * only referenced from evaluationQuestions.json, not from any .ts call
+ * site). Deliberately an allowlist rather than "every key minus the shared
+ * ones": everything else in DESAIN_SKEMA_TEXTURES is shared with JalurPcb,
+ * and an allowlist can't accidentally start releasing a shared key just
+ * because the map above grows.
+ */
+const EXCLUSIVE_TO_DESAIN_SKEMA = ['paper-work-1', 'paper-work-2', 'paper-work-3']
+
+/**
+ * Frees the paper-work-* quiz diagrams. Call from this scene's `shutdown`
+ * handler, after its own GameObjects are gone.
+ */
+export function releaseDesainSkemaTextures(scene: Phaser.Scene) {
+  EXCLUSIVE_TO_DESAIN_SKEMA.forEach((key) => {
+    if (scene.textures.exists(key)) scene.textures.remove(key)
   })
 }
 
@@ -168,6 +202,9 @@ export class DesainSkema extends Phaser.Scene {
     this.events.once('shutdown', () => {
       EventBus.off(STAGE_RESIZE_EVENT, recentre)
       EventBus.off(SETTINGS_CHANGED_EVENT, syncToggle)
+      // Last, so nothing above is still holding a reference into these
+      // textures when they're freed — see releaseDesainSkemaTextures's docstring.
+      releaseDesainSkemaTextures(this)
     })
 
     EventBus.emit('current-scene-ready', this)

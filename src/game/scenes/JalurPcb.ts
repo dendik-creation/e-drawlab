@@ -10,44 +10,44 @@ import { MateriStep, materiEntranceDuration } from '../jalurPcb/materiStep'
 import { SimulasiStep } from '../jalurPcb/simulasiStep'
 import { EvaluationStep } from '../desainSkema/evaluationStep'
 import { JALUR_PCB_EVALUATION } from '../jalurPcb/evaluation'
-import goHomeUrl from '../../../assets/images/02_global_buttons/go_home.png'
-import goBackUrl from '../../../assets/images/02_global_buttons/go_back.png'
-import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.png'
-import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.png'
-import illustrationArusMengalirUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_arus_mengalir.png'
-import illustrationPerbandinganLebarUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_perbandingan_lebar.png'
-import illustrationPenampangPcbUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_penampang_pcb.png'
-import illustrationPerbandinganTipisLebarUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_perbandingan_tipis_lebar.png'
-import illustrationArusDiprosesUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_arus_diproses.png'
-import illustrationPengukuranLebarUrl from '../../../assets/images/07_jalur_pcb/materi/illustration_pengukuran_lebar.png'
+import goHomeUrl from '../../../assets/images/02_global_buttons/go_home.webp'
+import goBackUrl from '../../../assets/images/02_global_buttons/go_back.webp'
+import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.webp'
+import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.webp'
+import illustrationArusMengalirUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_arus_mengalir.webp'
+import illustrationPerbandinganLebarUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_perbandingan_lebar.webp'
+import illustrationPenampangPcbUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_penampang_pcb.webp'
+import illustrationPerbandinganTipisLebarUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_perbandingan_tipis_lebar.webp'
+import illustrationArusDiprosesUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_arus_diproses.webp'
+import illustrationPengukuranLebarUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/illustration_pengukuran_lebar.webp'
 // `?no-inline` forces Vite to always emit a real fetchable path instead of
 // inlining these (small) SVGs as a data URI — Phaser's SVGFile loader assumes
 // any `data:` URL it gets is base64 and unconditionally atob()s it, which
 // throws on Vite's percent-encoded inline form.
-import iconTrendUpUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_trend_up.svg?no-inline'
-import iconCopperLayerUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_copper_layer.svg?no-inline'
-import iconSubstrateUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_substrate.svg?no-inline'
-import iconFactor01Url from '../../../assets/images/07_jalur_pcb/materi/icons/icon_factor_01.svg?no-inline'
-import iconFactor02Url from '../../../assets/images/07_jalur_pcb/materi/icons/icon_factor_02.svg?no-inline'
-import iconFactor03Url from '../../../assets/images/07_jalur_pcb/materi/icons/icon_factor_03.svg?no-inline'
-import iconFactor04Url from '../../../assets/images/07_jalur_pcb/materi/icons/icon_factor_04.svg?no-inline'
-import iconWarningUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_warning.svg?no-inline'
-import iconCheckUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_check.svg?no-inline'
-import iconArrowRightUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_arrow_right.svg?no-inline'
-import iconArrowLeftRightUrl from '../../../assets/images/07_jalur_pcb/materi/icons/icon_arrow_left_right.svg?no-inline'
-import rulerTicksUrl from '../../../assets/images/07_jalur_pcb/simulasi/ruler_ticks.svg?no-inline'
-import evalQuestion1Url from '../../../assets/images/06_evaluation_pictures/02_Jalur_Pcb/question_image_1.png'
-import evalLeftSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/left-side-electronics.png'
-import evalRightSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/right-side-electronic.png'
-import elecPcbTraceUrl from '../../../assets/images/03_electronic_assets/elec_pcb_trace_icon.png'
-import elecIcChipUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip1.png'
-import elecOpampUrl from '../../../assets/images/03_electronic_assets/elec_opamp_triangle.png'
-import elecBatteryUrl from '../../../assets/images/03_electronic_assets/elec_battery.png'
-import elecTerminalBlockUrl from '../../../assets/images/03_electronic_assets/elec_terminal_block_green.png'
-import elecResistorUrl from '../../../assets/images/03_electronic_assets/elec_resistor.png'
-import elecCapacitorUrl from '../../../assets/images/03_electronic_assets/elec_capacitor.png'
-import elecDiodeUrl from '../../../assets/images/03_electronic_assets/elec_diode.png'
-import elecInductorUrl from '../../../assets/images/03_electronic_assets/elec_inductor_coil.png'
+import iconTrendUpUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_trend_up.svg?no-inline'
+import iconCopperLayerUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_copper_layer.svg?no-inline'
+import iconSubstrateUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_substrate.svg?no-inline'
+import iconFactor01Url from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_factor_01.svg?no-inline'
+import iconFactor02Url from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_factor_02.svg?no-inline'
+import iconFactor03Url from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_factor_03.svg?no-inline'
+import iconFactor04Url from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_factor_04.svg?no-inline'
+import iconWarningUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_warning.svg?no-inline'
+import iconCheckUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_check.svg?no-inline'
+import iconArrowRightUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_arrow_right.svg?no-inline'
+import iconArrowLeftRightUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/materi/icons/icon_arrow_left_right.svg?no-inline'
+import rulerTicksUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/simulasi/ruler_ticks.svg?no-inline'
+import evalQuestion1Url from '../../../assets/images/06_evaluation_pictures/02_Jalur_Pcb/question_image_1.webp'
+import evalLeftSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/left-side-electronics.webp'
+import evalRightSideUrl from '../../../assets/images/03_electronic_assets/grouped/01_Design_Schema/Evaluation/right-side-electronic.webp'
+import elecPcbTraceUrl from '../../../assets/images/03_electronic_assets/elec_pcb_trace_icon.webp'
+import elecIcChipUrl from '../../../assets/images/03_electronic_assets/elec_ic_chip1.webp'
+import elecOpampUrl from '../../../assets/images/03_electronic_assets/elec_opamp_triangle.webp'
+import elecBatteryUrl from '../../../assets/images/03_electronic_assets/elec_battery.webp'
+import elecTerminalBlockUrl from '../../../assets/images/03_electronic_assets/elec_terminal_block_green.webp'
+import elecResistorUrl from '../../../assets/images/03_electronic_assets/elec_resistor.webp'
+import elecCapacitorUrl from '../../../assets/images/03_electronic_assets/elec_capacitor.webp'
+import elecDiodeUrl from '../../../assets/images/03_electronic_assets/elec_diode.webp'
+import elecInductorUrl from '../../../assets/images/03_electronic_assets/elec_inductor_coil.webp'
 
 /** Raster images this module draws — the global nav/bgm icons are the same assets Home/DesainSkema already load, reused by texture key. */
 const JALUR_PCB_IMAGES: Record<string, string> = {
@@ -107,6 +107,41 @@ export function queueJalurPcbTextures(scene: Phaser.Scene) {
   if (!scene.textures.exists(RULER_TEXTURE.key)) {
     scene.load.svg(RULER_TEXTURE.key, RULER_TEXTURE.url, { width: RULER_TEXTURE.width, height: RULER_TEXTURE.height })
   }
+}
+
+/**
+ * Keys this module loads that are exclusive to it — every other key in
+ * JALUR_PCB_IMAGES (go-home, go-back, bgm-on/off, elec-*, eval-left-side,
+ * eval-right-side) is shared with Home and/or DesainSkema. Deliberately an
+ * allowlist rather than "every key minus the shared ones": everything not
+ * listed here is shared, and an allowlist can't accidentally start releasing
+ * a shared key just because JALUR_PCB_IMAGES grows.
+ */
+const EXCLUSIVE_TO_JALUR_PCB = [
+  'jalur-arus-mengalir',
+  'jalur-perbandingan-lebar',
+  'jalur-penampang-pcb',
+  'jalur-perbandingan-tipis-lebar',
+  'jalur-arus-diproses',
+  'jalur-pengukuran-lebar',
+  'jalur-eval-question-1',
+]
+
+/**
+ * Frees every texture `queueJalurPcbTextures` loaded that nothing outside
+ * this journey ever draws — the illustrations, the SVG-rasterised icons and
+ * the ruler strip. Call from this scene's `shutdown` handler, after its own
+ * GameObjects (which is everything that could still hold one of these
+ * textures) are gone.
+ */
+export function releaseJalurPcbTextures(scene: Phaser.Scene) {
+  EXCLUSIVE_TO_JALUR_PCB.forEach((key) => {
+    if (scene.textures.exists(key)) scene.textures.remove(key)
+  })
+  JALUR_PCB_ICONS.forEach(({ key }) => {
+    if (scene.textures.exists(key)) scene.textures.remove(key)
+  })
+  if (scene.textures.exists(RULER_TEXTURE.key)) scene.textures.remove(RULER_TEXTURE.key)
 }
 
 export type JalurPcbStep = 'materi' | 'simulasi' | 'evaluasi'
@@ -195,6 +230,9 @@ export class JalurPcb extends Phaser.Scene {
       this.materiStep?.teardown()
       this.simulasiStep?.teardown()
       this.evaluationStep?.teardown()
+      // Last, so nothing above is still holding a reference into these
+      // textures when they're freed — see releaseJalurPcbTextures's docstring.
+      releaseJalurPcbTextures(this)
     })
 
     EventBus.emit('current-scene-ready', this)

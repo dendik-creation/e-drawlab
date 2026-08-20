@@ -27,6 +27,10 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   render: {
     antialias: true,
+    // Lets low-end mobile GPUs (limited to one texture unit per draw call)
+    // still batch draws from the atlases in src/game/textures.ts — without
+    // it Phaser assumes desktop-class multi-texture batching everywhere.
+    autoMobileTextures: true,
   },
   scene: [Boot, Splash, Home, DesainSkema, JalurPcb],
 }
