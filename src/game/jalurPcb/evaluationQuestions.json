@@ -1,0 +1,37 @@
+{
+  "questions": [
+    {
+      "id": "Q-S2-01",
+      "question": "Seorang siswa merancang layout PCB untuk rangkaian Pemanas Air Portable 12V / 60W. Papan yang dipakai adalah klad tembaga standar laboratorium sekolah, yaitu 1 oz (35 µm). Berapa lebar jalur tembaga utama yang harus digambar?",
+      "images": ["jalur-eval-question-1"],
+      "options": [
+        { "key": "A", "text": "2,5 mm" },
+        { "key": "B", "text": "5,0 mm" },
+        { "key": "C", "text": "10,0 mm" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S2-02",
+      "question": "Rangkaian driver motor robotika dialiri arus puncak 8 Ampere. Karena area papan sangat terbatas, spesifikasi papan diganti dari tembaga standar 1 oz menjadi tembaga tebal 2 oz (70 µm). Berapa penghematan lebar jalur daya yang diperoleh?",
+      "images": ["jalur-eval-question-1"],
+      "options": [
+        { "key": "A", "text": "Hemat 2,0 mm (dari 8,0 mm menjadi 6,0 mm)" },
+        { "key": "B", "text": "Hemat 4,0 mm (dari 8,0 mm menjadi 4,0 mm)" },
+        { "key": "C", "text": "Hemat 8,0 mm (dari 16,0 mm menjadi 8,0 mm)" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-S2-03",
+      "question": "Pada modul sensor presisi berketebalan tembaga tipis 0,5 oz (17,5 µm) terdapat dua jenis jalur: jalur daya utama yang dialiri arus 1 Ampere dan jalur sinyal sensor yang dialiri arus 0,05 Ampere. Berapa lebar jalur daya yang wajib digambar, dan bagaimana acuan penggambaran jalur sinyalnya?",
+      "images": ["jalur-eval-question-1"],
+      "options": [
+        { "key": "A", "text": "Jalur daya digambar 1,0 mm, sedangkan jalur sinyal digambar 0,05 mm" },
+        { "key": "B", "text": "Jalur daya digambar 2,0 mm, sedangkan jalur sinyal digambar minimal 0,8 mm - 1,0 mm agar tidak mudah terputus saat proses pelarutan (etching)" },
+        { "key": "C", "text": "Kedua jalur (daya dan sinyal) wajib digambar dengan lebar yang sama persis, yaitu 2,0 mm" }
+      ],
+      "correct": "B"
+    }
+  ]
+}

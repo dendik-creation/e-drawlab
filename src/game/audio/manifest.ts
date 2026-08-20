@@ -82,6 +82,12 @@ export const SFX = {
   allConnected: { file: 'all_connected_success.ogg', layer: 'sfx' },
   /** Langkah 3 evaluation quiz finished — plays once the results card appears, replacing work_theme. */
   completeEvaluation: { file: 'complete_evaluation.ogg', layer: 'sfx' },
+  /** Detent tick while dragging a simulator slider. Fired per value step, throttled by the widget. */
+  sliderTick: { file: 'slider-tick.ogg', layer: 'sfx' },
+  /** Jalur PCB simulator verdicts — one per status, fired only when the status actually changes. */
+  statusSafe: { file: 'status-safe.ogg', layer: 'sfx' },
+  statusWarning: { file: 'status-warning.ogg', layer: 'sfx' },
+  statusDanger: { file: 'status-danger.ogg', layer: 'sfx' },
 } as const satisfies Record<string, AudioAsset>
 
 /** Looping score. One track per context, cross-faded or ducked between scenes. */

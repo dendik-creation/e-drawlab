@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { DESIGN_WIDTH } from '../stage'
 import { coverFit, containFit } from '../coverFit'
 import { audio } from '../audio/AudioDirector'
-import { EVALUATION_QUESTIONS, shuffleQuestions, scoreTier, SCORE_TIER_MESSAGE, type QuizQuestion, type ScoreTier } from './evaluation'
+import { shuffleOptions, shuffleQuestions, scoreTier, type EvaluationConfig, type QuizQuestion } from './evaluation'
 import {
   attachButtonBehaviour,
   buildActionButton,
@@ -51,12 +51,6 @@ const EVAL_IMAGE_TO_TEXT_GAP = 18
 // Langkah 3 intro dialog card, shown before the countdown/quiz start.
 const EVAL_INTRO_CARD_WIDTH = 640
 const EVAL_INTRO_CARD_TOP = 210
-const EVAL_INTRO_INSTRUCTIONS = [
-  'Kuis ini terdiri dari 9 soal pilihan ganda seputar skema rangkaian LED.',
-  'Perhatikan gambar skema pada tiap soal sebelum memilih jawaban.',
-  'Setiap soal hanya bisa dijawab satu kali dan jawabannya tidak bisa diubah.',
-  'Skor akhir dihitung dari jumlah jawaban yang benar di semua soal.',
-]
 
 // Countdown before the quiz/timer/bgm start.
 const COUNTDOWN_Y = 560
@@ -86,13 +80,6 @@ const SIDE_ART_Y = 170
 const STAR_ZONE_LEFT_X = 60
 const STAR_ZONE_RIGHT_X = DESIGN_WIDTH - 60
 
-/** Icons the results card can randomly show, grouped by how well the learner did. */
-const RESULT_ICONS: Record<ScoreTier, string[]> = {
-  excellent: ['elec-led', 'elec-opamp', 'elec-ic-chip'],
-  good: ['elec-battery', 'elec-resistor', 'elec-terminal-block'],
-  retry: ['elec-capacitor', 'elec-diode', 'elec-inductor'],
-}
-
 const RESULT_CARD_WIDTH = 560
 const RESULT_CARD_HEIGHT = 340
 const RESULT_CARD_TOP = 250
@@ -114,14 +101,20 @@ interface EvaluationState {
 }
 
 /**
- * Langkah 3 — Evaluasi: an intro dialog card, a 3-2-1 countdown, the 9-question
- * quiz (shuffled per attempt), then a results card. One instance per visit;
- * the scene builds a fresh one on every step change.
+ * Langkah 3 — Evaluasi: an intro dialog card, a 3-2-1 countdown, the quiz
+ * itself (question order shuffled per attempt), then a results card. One
+ * instance per visit; the scene builds a fresh one on every step change.
+ *
+ * Subject-matter free: the question bank, intro copy, result icons, tier
+ * messages and margin art all arrive as an `EvaluationConfig`, so the Desain
+ * Skema and Jalur PCB journeys run the same choreography over different
+ * content.
  */
 export class EvaluationStep {
   private state!: EvaluationState
   private body!: Phaser.GameObjects.Container
   private ctx: UiContext
+  private config: EvaluationConfig
   private onExitHome: () => void
   /**
    * True while a card is mid fadeUpOut, on its way to being replaced. These
@@ -135,9 +128,16 @@ export class EvaluationStep {
    */
   private navigating = false
 
-  constructor(ctx: UiContext, onExitHome: () => void) {
+  constructor(ctx: UiContext, config: EvaluationConfig, onExitHome: () => void) {
     this.ctx = ctx
+    this.config = config
     this.onExitHome = onExitHome
+  }
+
+  /** A fresh attempt's question order, plus per-question option order where the bank asks for it. */
+  private drawQuestions(): QuizQuestion[] {
+    const questions = shuffleQuestions(this.config.questions)
+    return this.config.shuffleOptionOrder ? questions.map(shuffleOptions) : questions
   }
 
   private get scene() {
@@ -150,7 +150,7 @@ export class EvaluationStep {
     body.add(this.buildEvaluationDecoration())
 
     this.state = {
-      questions: shuffleQuestions(EVALUATION_QUESTIONS),
+      questions: this.drawQuestions(),
       index: 0,
       score: 0,
       answered: false,
@@ -223,7 +223,7 @@ export class EvaluationStep {
 
     const badgeX = -textWidth / 2 + 14
     const rowTextX = badgeX + 30
-    EVAL_INTRO_INSTRUCTIONS.forEach((line, i) => {
+    this.config.introInstructions.forEach((line, i) => {
       const text = this.scene.add
         .text(rowTextX, cursorY, line, {
           fontFamily: FONT_BODY,
@@ -352,8 +352,9 @@ export class EvaluationStep {
 
   /** Two static images filling the empty margins either side of the quiz card — see the const comment above SIDE_ART_Y. */
   private buildEvaluationDecoration() {
-    const left = this.scene.add.image(STAR_ZONE_LEFT_X, SIDE_ART_Y, 'eval-left-side').setOrigin(0, 0)
-    const right = this.scene.add.image(STAR_ZONE_RIGHT_X, SIDE_ART_Y, 'eval-right-side').setOrigin(1, 0)
+    const { left: leftKey, right: rightKey } = this.config.sideArt
+    const left = this.scene.add.image(STAR_ZONE_LEFT_X, SIDE_ART_Y, leftKey).setOrigin(0, 0)
+    const right = this.scene.add.image(STAR_ZONE_RIGHT_X, SIDE_ART_Y, rightKey).setOrigin(1, 0)
     return this.scene.add.container(0, 0, [left, right])
   }
 
@@ -668,7 +669,10 @@ export class EvaluationStep {
     const total = state.questions.length
     const score = state.score
     const tier = scoreTier(score, total)
-    const icon = Phaser.Utils.Array.GetRandom(RESULT_ICONS[tier])
+    const icon = Phaser.Utils.Array.GetRandom(this.config.resultIcons[tier])
+
+    // Quiz finished — the journey can mark itself done (Home's menu badge).
+    this.config.onComplete?.()
 
     const content = this.scene.add.container(0, 0)
     this.body.add(content)
@@ -735,7 +739,7 @@ export class EvaluationStep {
     content.add(scoreTotal)
 
     const messageText = this.scene.add
-      .text(EVAL_CENTER_X, cardTop + 288, SCORE_TIER_MESSAGE[tier], {
+      .text(EVAL_CENTER_X, cardTop + 288, this.config.tierMessage[tier], {
         fontFamily: FONT_BODY,
         fontStyle: '600',
         fontSize: '15px',
@@ -770,7 +774,7 @@ export class EvaluationStep {
     const state = this.state
     state.score = 0
     state.index = 0
-    state.questions = shuffleQuestions(EVALUATION_QUESTIONS)
+    state.questions = this.drawQuestions()
     this.startCountdown()
   }
 }

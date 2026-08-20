@@ -19,6 +19,8 @@ export const CARD_EDGE = 0xece0c8
 export const CARD_SHADOW_ALPHA = 0.1
 export const FONT_HEADING = "'Baloo 2 Variable', 'Baloo 2', sans-serif"
 export const FONT_BODY = "'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif"
+/** Numeric/formula readouts — the Jalur PCB simulator's measurement typeface. Loaded alongside the other two in `styles/fonts.css`. */
+export const FONT_MONO = "'JetBrains Mono Variable', 'JetBrains Mono', monospace"
 export const TEXT_RESOLUTION = Math.min(window.devicePixelRatio || 1, 2)
 
 export const FOOTER_Y = 1006

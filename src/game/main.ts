@@ -7,10 +7,12 @@ import { Boot } from './scenes/Boot'
 import { Splash } from './scenes/Splash'
 import { Home, type HomeMenuAction } from './scenes/Home'
 import { DesainSkema } from './scenes/DesainSkema'
+import { JalurPcb } from './scenes/JalurPcb'
 
 /** Where each Home menu action lands. Actions missing here have no destination scene yet. */
 const HOME_DESTINATIONS: Partial<Record<HomeMenuAction, string>> = {
   'desain-skema': 'DesainSkema',
+  'jalur-pcb': 'JalurPcb',
 }
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -26,7 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
   render: {
     antialias: true,
   },
-  scene: [Boot, Splash, Home, DesainSkema],
+  scene: [Boot, Splash, Home, DesainSkema, JalurPcb],
 }
 
 let game: Phaser.Game | null = null

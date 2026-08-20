@@ -6,6 +6,7 @@ import { SETTINGS_CHANGED_EVENT } from '../state/settings'
 import { session } from '../state/session'
 import { markMenuCompleted } from '../state/progress'
 import { CIRCUIT_LEVELS } from '../desainSkema/circuits'
+import { DESAIN_SKEMA_EVALUATION } from '../desainSkema/evaluation'
 import { EXIT_FADE_DURATION, type InteractiveTarget, type UiContext } from '../desainSkema/uiKit'
 import { DesainSkemaHeader } from '../desainSkema/header'
 import { MateriStep, materiEntranceDuration } from '../desainSkema/materiStep'
@@ -326,7 +327,7 @@ export class DesainSkema extends Phaser.Scene {
     // bar for Home's menu-corner badge — see state/progress.ts.
     markMenuCompleted('desain-skema')
 
-    this.evaluationStep = new EvaluationStep(this.uiContext, () => this.goHome())
+    this.evaluationStep = new EvaluationStep(this.uiContext, DESAIN_SKEMA_EVALUATION, () => this.goHome())
     this.evaluationStep.render(this.body)
   }
 }
