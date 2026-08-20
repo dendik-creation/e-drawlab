@@ -71,11 +71,17 @@ export function attachButtonBehaviour(ctx: UiContext, button: InteractiveTarget,
   // succession (fast double-click, or duplicate touch+mouse events) well
   // within the ~90ms press animation, before the scene's own lock is ever
   // set — that raced two overlapping transitions and was the intermittent
-  // "Lanjut crashes, needs a refresh" report.
+  // "Lanjut crashes, needs a refresh" report. It also has to guard scaleTo()
+  // itself: touch has no real hover, so pointerover/pointerout can land in
+  // either order around pointerdown, well inside that same 90ms window —
+  // unlike a mouse, which keeps hovering for the whole click. If either one
+  // reaches killTweensOf() while pressed, it discards the press tween's
+  // onComplete (where onPress() lives) before it runs, and the tap silently
+  // never fires its action.
   let pressed = false
 
   const scaleTo = (multiplier: number, duration: number, ease: string) => {
-    if (ctx.isLocked()) return
+    if (ctx.isLocked() || pressed) return
     ctx.scene.tweens.killTweensOf(button)
     ctx.scene.tweens.add({ targets: button, scaleX: baseScaleX * multiplier, scaleY: baseScaleY * multiplier, duration, ease })
   }

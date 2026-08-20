@@ -65,7 +65,7 @@ Client-only static web application, local-first, installable as a PWA, distribut
 - [[Local-First-Architecture]] · [[PWA-Architecture]] · [[Offline-Strategy]] · [[Deployment-Architecture]]
 
 **Development**
-- [[Roadmap]] · [[Milestones]] · [[Tasks]] · [[Technical-Debt]] · [[Changelog]]
+- [[Roadmap]] · [[Milestones]] · [[Tasks]] · [[Technical-Debt]] · [[Changelog]] · [[Interactive-Button-Patterns]]
 
 **Decisions and research**
 - [[Decisions-Index]] (summary table below) · [[Research]] index

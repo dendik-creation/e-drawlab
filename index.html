@@ -1,20 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="./assets/images/00_identity/favicon.png" />
+    <link rel="apple-touch-icon" href="./assets/images/00_identity/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>vite-scaffold</title>
+    <meta name="theme-color" content="#2b909f" />
+    <title>E-DrawLab — Laboratorium Maya Interaktif Desain CAD Elektronika</title>
+    <meta
+      name="description"
+      content="E-DrawLab: laboratorium maya interaktif untuk latihan desain skema CAD elektronika, dibuat untuk siswa SMK Kelas X Program Keahlian Teknik Elektronika."
+    />
+    <meta
+      name="keywords"
+      content="e-drawlab, desain skema elektronika, CAD elektronika, laboratorium maya, simulasi elektronika, SMK Teknik Elektronika, pembelajaran interaktif"
+    />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:title" content="E-DrawLab — Laboratorium Maya Interaktif Desain CAD Elektronika" />
+    <meta
+      property="og:description"
+      content="Laboratorium maya interaktif untuk latihan desain skema CAD elektronika, untuk siswa SMK Kelas X Program Keahlian Teknik Elektronika."
+    />
+    <meta property="og:image" content="./assets/images/00_identity/main_logo.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="E-DrawLab — Laboratorium Maya Interaktif Desain CAD Elektronika" />
+    <meta
+      name="twitter:description"
+      content="Laboratorium maya interaktif untuk latihan desain skema CAD elektronika, untuk siswa SMK Kelas X Program Keahlian Teknik Elektronika."
+    />
+    <meta name="twitter:image" content="./assets/images/00_identity/main_logo.png" />
   </head>
   <body>
     <div id="root"></div>
     <script>
-      // Temporary on-device diagnostic overlay. Open the site with ?debug=1
-      // (e.g. https://edrawlab.projectmendoan.my.id/?debug=1) on a phone that
-      // has no way to attach a real DevTools console, and every error/warning
-      // prints straight onto the screen instead. Inert unless that query
-      // param is present — safe to leave committed. Delete this whole block
-      // once the mobile bug is diagnosed.
+      // active when param url has ?debug=1
       if (/[?&]debug(=1)?(&|$)/.test(location.search)) {
         var box = document.createElement('pre')
         box.style.cssText =

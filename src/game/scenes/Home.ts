@@ -435,8 +435,18 @@ export class Home extends Phaser.Scene {
     const baseScaleX = button.scaleX
     const baseScaleY = button.scaleY
 
+    // Touch has no real hover: a tap can fire pointerover/pointerout in
+    // either order around pointerdown, well inside the press tween's
+    // PRESS_DOWN_DURATION window — unlike a mouse, which keeps hovering for
+    // the whole click. `pressed` blocks every path here (not just the one
+    // that seemed likely) from reaching killTweensOf() while the press tween
+    // is in flight, since that would discard its onComplete — where
+    // onPress() lives — before it runs: the tap would fire pointerdown but
+    // silently never navigate.
+    let pressed = false
+
     const scaleTo = (multiplier: number, duration: number, ease: string) => {
-      if (this.exiting) return
+      if (this.exiting || pressed) return
       this.tweens.killTweensOf(button)
       this.tweens.add({
         targets: button,
@@ -454,7 +464,8 @@ export class Home extends Phaser.Scene {
     })
     button.on('pointerout', () => scaleTo(1, HOVER_DURATION, 'Sine.easeOut'))
     button.on('pointerdown', () => {
-      if (this.exiting) return
+      if (this.exiting || pressed) return
+      pressed = true
       this.tweens.killTweensOf(button)
       this.tweens.add({
         targets: button,
@@ -463,6 +474,7 @@ export class Home extends Phaser.Scene {
         duration: PRESS_DOWN_DURATION,
         ease: 'Quad.easeOut',
         onComplete: () => {
+          pressed = false
           // onPress first: if it starts the exit, scaleTo bails out instead of
           // spawning a press-up tween that the exit would immediately kill.
           onPress()

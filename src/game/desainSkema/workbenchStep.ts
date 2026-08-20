@@ -235,6 +235,15 @@ export class WorkbenchStep {
     state.etiketGhost?.pulse.remove()
     if (state.etiketRow) this.scene.tweens.killTweensOf(state.etiketRow)
 
+    // Clear the container's filter before destroying the mask's source
+    // graphic. The container stays on screen fading out for up to
+    // EXIT_FADE_DURATION/160ms after teardown() returns (see DesainSkema's
+    // goHome/transitionTo), and every render frame in between re-draws the
+    // mask via `paletteMask` — destroying that graphic first left the filter
+    // holding a dead GameObject and crashed the next frame it tried to
+    // render (`gameObject.scene.renderer` on a destroyed `.scene`).
+    state.paletteContainer?.filters?.internal.clear()
+
     // Off the display list (see layoutPalette) — body.removeAll(true) never
     // reaches it, so it has to be destroyed by hand or it leaks every visit.
     state.paletteMask?.destroy()
