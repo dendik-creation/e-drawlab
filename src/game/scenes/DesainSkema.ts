@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
 import { applyStageCamera, STAGE_RESIZE_EVENT } from '../stage'
+import { BaseStageScene } from './BaseStageScene'
 import { audio } from '../audio/AudioDirector'
 import { SETTINGS_CHANGED_EVENT } from '../state/settings'
 import { session } from '../state/session'
@@ -131,7 +132,7 @@ const LEVEL_NUMBER: Record<Exclude<JourneyStep, 'materi' | 'evaluasi'>, 1 | 2 | 
  * Circuit content lives in `../desainSkema/circuits.ts`, per ADR-003
  * (content as data): C1/C2/C3 from Stage-1-Schematic-Standards.
  */
-export class DesainSkema extends Phaser.Scene {
+export class DesainSkema extends BaseStageScene {
   private body!: Phaser.GameObjects.Container
   private header!: DesainSkemaHeader
   private interactives: InteractiveTarget[] = []
@@ -162,7 +163,7 @@ export class DesainSkema extends Phaser.Scene {
     queueDesainSkemaTextures(this)
   }
 
-  create() {
+  protected onCreate() {
     applyStageCamera(this)
     this.cameras.main.setBackgroundColor('#faf3e7')
 
@@ -195,17 +196,11 @@ export class DesainSkema extends Phaser.Scene {
     this.header.render(this.badgeLabel(), false, true)
     this.renderMateri(true)
 
-    const recentre = () => applyStageCamera(this)
-    const syncToggle = () => this.header.syncBgmToggle()
-    EventBus.on(STAGE_RESIZE_EVENT, recentre)
-    EventBus.on(SETTINGS_CHANGED_EVENT, syncToggle)
-    this.events.once('shutdown', () => {
-      EventBus.off(STAGE_RESIZE_EVENT, recentre)
-      EventBus.off(SETTINGS_CHANGED_EVENT, syncToggle)
-      // Last, so nothing above is still holding a reference into these
-      // textures when they're freed — see releaseDesainSkemaTextures's docstring.
-      releaseDesainSkemaTextures(this)
-    })
+    this.onBusEvent(STAGE_RESIZE_EVENT, () => applyStageCamera(this))
+    this.onBusEvent(SETTINGS_CHANGED_EVENT, () => this.header.syncBgmToggle())
+    // Registered last, so both onBusEvent unbinds above have already run by
+    // the time this fires — see releaseDesainSkemaTextures's docstring.
+    this.onCleanup(() => releaseDesainSkemaTextures(this))
 
     EventBus.emit('current-scene-ready', this)
 

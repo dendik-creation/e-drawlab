@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
+import { BaseStageScene } from './BaseStageScene'
 import {
   applyStageCamera,
   stage,
@@ -183,7 +184,7 @@ const REDUCED_MOTION_DURATION = 220
  * navigate afterwards; it emits `home-exit-complete` with the chosen action so
  * the destination scenes can be wired up later.
  */
-export class Home extends Phaser.Scene {
+export class Home extends BaseStageScene {
   private bubbles!: BubbleSequence
   private background!: Phaser.GameObjects.Image
   /** Glass panel, logo and menu — one unit, scaled and anchored to the stage. */
@@ -205,7 +206,7 @@ export class Home extends Phaser.Scene {
     queueHomeTextures(this)
   }
 
-  create() {
+  protected onCreate() {
     applyStageCamera(this)
     this.cameras.main.setBackgroundColor('#f2ecf5')
 
@@ -288,20 +289,14 @@ export class Home extends Phaser.Scene {
 
     this.layoutStage()
 
-    const refit = () => this.fitToStage()
-    const syncToggle = () => this.syncBgmToggle()
-    EventBus.on(STAGE_RESIZE_EVENT, refit)
-    EventBus.on(SETTINGS_CHANGED_EVENT, syncToggle)
-    this.events.once('shutdown', () => {
-      EventBus.off(STAGE_RESIZE_EVENT, refit)
-      EventBus.off(SETTINGS_CHANGED_EVENT, syncToggle)
-      // No texture release here on purpose: home-bg and main-logo are only
-      // this scene's own, but Home is the hub every journey exits back to —
-      // freeing them here would force a network refetch + re-decode on every
-      // single return trip. Leaving them resident is the better trade for a
-      // scene visited this often; see JalurPcb.ts's releaseJalurPcbTextures
-      // for the shutdown-release pattern where it does pay off.
-    })
+    this.onBusEvent(STAGE_RESIZE_EVENT, () => this.fitToStage())
+    this.onBusEvent(SETTINGS_CHANGED_EVENT, () => this.syncBgmToggle())
+    // No texture release registered here on purpose: home-bg and main-logo
+    // are only this scene's own, but Home is the hub every journey exits
+    // back to — freeing them here would force a network refetch + re-decode
+    // on every single return trip. Leaving them resident is the better trade
+    // for a scene visited this often; see JalurPcb.ts's releaseJalurPcbTextures
+    // for the shutdown-release pattern where it does pay off.
 
     EventBus.emit('current-scene-ready', this)
 

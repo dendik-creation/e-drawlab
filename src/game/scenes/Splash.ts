@@ -3,6 +3,7 @@ import { EventBus } from '../EventBus'
 import { applyStageCamera, stage, STAGE_RESIZE_EVENT } from '../stage'
 import { coverFit } from '../coverFit'
 import { queueHomeTextures } from './Home'
+import { BaseStageScene } from './BaseStageScene'
 import { audio } from '../audio/AudioDirector'
 import { session, SESSION_CHANGED_EVENT } from '../state/session'
 import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.webp'
@@ -107,7 +108,7 @@ interface Gate {
  * the logo and subtitle are created once and never re-rendered — only the bar↔button
  * region bubbles out/in when the loading state changes.
  */
-export class Splash extends Phaser.Scene {
+export class Splash extends BaseStageScene {
   private background!: Phaser.GameObjects.Image
   private track!: Phaser.GameObjects.Graphics
   private progressFill!: Phaser.GameObjects.Graphics
@@ -156,20 +157,14 @@ export class Splash extends Phaser.Scene {
     this.prepareBubbleGroup([this.track, this.progressFill, this.progressText])
   }
 
-  create() {
+  protected onCreate() {
     session.set({ currentScene: 'Splash' })
 
-    const recentre = () => {
+    this.onBusEvent(STAGE_RESIZE_EVENT, () => {
       applyStageCamera(this)
       coverFit(this.background, stage.width, stage.height)
-    }
-    const syncGate = () => this.applyOrientationGate(BUBBLE_IN_DELAY)
-    EventBus.on(STAGE_RESIZE_EVENT, recentre)
-    EventBus.on(SESSION_CHANGED_EVENT, syncGate)
-    this.events.once('shutdown', () => {
-      EventBus.off(STAGE_RESIZE_EVENT, recentre)
-      EventBus.off(SESSION_CHANGED_EVENT, syncGate)
     })
+    this.onBusEvent(SESSION_CHANGED_EVENT, () => this.applyOrientationGate(BUBBLE_IN_DELAY))
 
     EventBus.emit('current-scene-ready', this)
 

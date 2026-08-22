@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
 import { applyStageCamera, STAGE_RESIZE_EVENT } from '../stage'
+import { BaseStageScene } from './BaseStageScene'
 import { audio } from '../audio/AudioDirector'
 import { SETTINGS_CHANGED_EVENT } from '../state/settings'
 import { session } from '../state/session'
@@ -163,7 +164,7 @@ const STEP_BADGE: Record<JalurPcbStep, string> = {
  * between steps, and one flat exit fade back to Home. Langkah 3 reuses
  * `EvaluationStep` itself, handed this journey's own question bank and copy.
  */
-export class JalurPcb extends Phaser.Scene {
+export class JalurPcb extends BaseStageScene {
   private body!: Phaser.GameObjects.Container
   private header!: JalurPcbHeader
   private interactives: InteractiveTarget[] = []
@@ -192,7 +193,7 @@ export class JalurPcb extends Phaser.Scene {
     queueJalurPcbTextures(this)
   }
 
-  create() {
+  protected onCreate() {
     applyStageCamera(this)
     this.cameras.main.setBackgroundColor('#faf3e7')
 
@@ -220,20 +221,17 @@ export class JalurPcb extends Phaser.Scene {
 
     this.renderMateri(true)
 
-    const recentre = () => applyStageCamera(this)
-    const syncToggle = () => this.header.syncBgmToggle()
-    EventBus.on(STAGE_RESIZE_EVENT, recentre)
-    EventBus.on(SETTINGS_CHANGED_EVENT, syncToggle)
-    this.events.once('shutdown', () => {
-      EventBus.off(STAGE_RESIZE_EVENT, recentre)
-      EventBus.off(SETTINGS_CHANGED_EVENT, syncToggle)
+    this.onBusEvent(STAGE_RESIZE_EVENT, () => applyStageCamera(this))
+    this.onBusEvent(SETTINGS_CHANGED_EVENT, () => this.header.syncBgmToggle())
+    this.onCleanup(() => {
       this.materiStep?.teardown()
       this.simulasiStep?.teardown()
       this.evaluationStep?.teardown()
-      // Last, so nothing above is still holding a reference into these
-      // textures when they're freed — see releaseJalurPcbTextures's docstring.
-      releaseJalurPcbTextures(this)
     })
+    // Registered last, so both onBusEvent unbinds and the step teardown
+    // above have already run by the time this fires — see
+    // releaseJalurPcbTextures's docstring.
+    this.onCleanup(() => releaseJalurPcbTextures(this))
 
     EventBus.emit('current-scene-ready', this)
 
