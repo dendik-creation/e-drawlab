@@ -105,7 +105,17 @@ function onHomeExitComplete(action: HomeMenuAction) {
   }
 
   const target = HOME_DESTINATIONS[action]
-  if (target) game?.scene.start(target)
+  if (!target) return
+
+  // `game.scene` here is the SceneManager, not a scene's own ScenePlugin —
+  // unlike `this.scene.start(...)` called from inside a scene (which stops
+  // its caller as a side effect), SceneManager.start() only starts the given
+  // key. Without this explicit stop, Home kept running forever underneath
+  // every journey — two full scenes updating/rendering every frame, which is
+  // why entering Desain Skema or Jalur Pcb dropped frames on mobile while
+  // Home alone stayed smooth.
+  game?.scene.stop('Home')
+  game?.scene.start(target)
 }
 
 export function StartGame(parent: string | HTMLElement): Phaser.Game {

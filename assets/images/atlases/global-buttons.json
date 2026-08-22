@@ -1,0 +1,174 @@
+{
+  "frames": {
+    "global-plus": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 116,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 116,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 116,
+        "h": 106
+      }
+    },
+    "global-pause": {
+      "frame": {
+        "x": 118,
+        "y": 0,
+        "w": 116,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 116,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 116,
+        "h": 104
+      }
+    },
+    "global-resume-play": {
+      "frame": {
+        "x": 236,
+        "y": 0,
+        "w": 118,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 104
+      }
+    },
+    "global-minus": {
+      "frame": {
+        "x": 356,
+        "y": 0,
+        "w": 116,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 116,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 116,
+        "h": 103
+      }
+    },
+    "go-back": {
+      "frame": {
+        "x": 474,
+        "y": 0,
+        "w": 100,
+        "h": 97
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 100,
+        "h": 97
+      },
+      "sourceSize": {
+        "w": 100,
+        "h": 97
+      }
+    },
+    "go-home": {
+      "frame": {
+        "x": 576,
+        "y": 0,
+        "w": 95,
+        "h": 87
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 87
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 87
+      }
+    },
+    "bgm-off": {
+      "frame": {
+        "x": 673,
+        "y": 0,
+        "w": 157,
+        "h": 70
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 157,
+        "h": 70
+      },
+      "sourceSize": {
+        "w": 157,
+        "h": 70
+      }
+    },
+    "bgm-on": {
+      "frame": {
+        "x": 832,
+        "y": 0,
+        "w": 147,
+        "h": 66
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 147,
+        "h": 66
+      },
+      "sourceSize": {
+        "w": 147,
+        "h": 66
+      }
+    }
+  },
+  "meta": {
+    "app": "e-drawlab/scripts/pack_atlas.py",
+    "image": "global-buttons.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 979,
+      "h": 106
+    },
+    "scale": "1"
+  }
+}

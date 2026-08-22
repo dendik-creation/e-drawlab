@@ -48,6 +48,14 @@ const SCROLL_BOTTOM_EPSILON = 4
 /** Wheel and drag feel roughly identical in speed; wheel deltas are just bigger per tick. */
 const WHEEL_SCROLL_FACTOR = 0.6
 
+/**
+ * Extra slack (px, content space) kept visible past the viewport edge when
+ * culling off-screen sections — a fast wheel/drag tick can move several
+ * hundred px in one update, so this keeps the next section from popping in
+ * a frame late.
+ */
+const CULL_MARGIN = 250
+
 const NEXT_BUTTON_WIDTH = 220
 const NEXT_BUTTON_HEIGHT = 68
 const NEXT_BUTTON_RADIUS = 16
@@ -60,11 +68,28 @@ interface SectionSpec {
   build: (scene: Phaser.Scene) => Phaser.GameObjects.Container
 }
 
+/** A rendered section's vertical span in `scrollLayer`-local space, used to cull it while off-screen. */
+interface SectionBounds {
+  container: Phaser.GameObjects.Container
+  top: number
+  bottom: number
+}
+
 /**
  * Langkah 1 — the Jalur PCB theory page. Long-form scrollable content (the
  * Figma frame is ~3600px tall against a 1080px viewport), so unlike
  * DesainSkema's materi grid this owns a scroll offset, a geometry mask, and a
  * footer button gated on having scrolled to the bottom.
+ *
+ * The mask is a WebGL Filter mask (Phaser 4 has no WebGL-capable
+ * GeometryMask — see layoutPalette's note in workbenchStep.ts), which
+ * composites its masked subtree through an offscreen render target every
+ * frame it's drawn. Phaser containers don't cull their own off-screen
+ * children, so without `updateSectionCulling` all nine sections' worth of
+ * Text/Image objects would sit in that offscreen pass on every single frame
+ * this step is on screen, not just while actively scrolling — hence
+ * `sectionBounds`/`updateSectionCulling` toggling `visible` on whatever's
+ * currently outside the viewport.
  */
 export class MateriStep {
   private ctx: UiContext
@@ -83,6 +108,8 @@ export class MateriStep {
   private nextLabel!: Phaser.GameObjects.Text
   private nextEnabled = false
   private onWheel?: (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[], dx: number, dy: number, dz: number) => void
+  /** Each section's vertical span, for `updateSectionCulling`. */
+  private sectionBounds: SectionBounds[] = []
 
   constructor(ctx: UiContext) {
     this.ctx = ctx
@@ -100,6 +127,12 @@ export class MateriStep {
       this.scrollLayer.add(built)
       return built
     })
+
+    this.sectionBounds = sections.map((section, i) => ({
+      container: sectionTargets[i],
+      top: section.y,
+      bottom: sections[i + 1]?.y ?? section.y + LAST_SECTION_HEIGHT,
+    }))
 
     // Phaser 4's WebGL renderer doesn't support the old Components.Mask
     // (setMask/createGeometryMask) — it silently no-ops there and warns "not
@@ -134,6 +167,29 @@ export class MateriStep {
     if (this.maxScroll <= 0) this.setNextEnabled(true)
 
     if (entrance) this.playSectionsIn(sectionTargets)
+
+    // Hide whatever's below the first screenful before the very first render
+    // — otherwise all nine sections sit in the mask's offscreen pass from
+    // frame one, entrance animation or not.
+    this.updateSectionCulling()
+  }
+
+  /**
+   * Toggles `visible` on each section based on whether it currently
+   * intersects the viewport. A GameObject with `visible = false` is skipped
+   * entirely by the renderer — including the WebGL Filter mask's offscreen
+   * composite pass — so this is what keeps that pass to roughly one or two
+   * sections' worth of Text/Image objects instead of all nine regardless of
+   * scroll position.
+   */
+  private updateSectionCulling() {
+    const offsetY = this.scrollLayer.y
+    const viewTop = VIEWPORT_TOP - CULL_MARGIN
+    const viewBottom = VIEWPORT_BOTTOM + CULL_MARGIN
+
+    this.sectionBounds.forEach(({ container, top, bottom }) => {
+      container.visible = offsetY + bottom >= viewTop && offsetY + top <= viewBottom
+    })
   }
 
   /** Removes the scene-level input listeners this step binds outside the display list — everything else dies with `body.removeAll(true)`. */
@@ -200,6 +256,7 @@ export class MateriStep {
     const min = VIEWPORT_TOP - this.maxScroll
     const max = VIEWPORT_TOP
     this.scrollLayer.y = Phaser.Math.Clamp(y, min, max)
+    this.updateSectionCulling()
 
     if (!this.reachedBottom && this.scrollLayer.y <= min + SCROLL_BOTTOM_EPSILON) {
       this.reachedBottom = true

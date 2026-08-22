@@ -1,0 +1,134 @@
+{
+  "frames": {
+    "btn-masuklab": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 460,
+        "h": 123
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 460,
+        "h": 123
+      },
+      "sourceSize": {
+        "w": 460,
+        "h": 123
+      }
+    },
+    "menu-keluar": {
+      "frame": {
+        "x": 462,
+        "y": 0,
+        "w": 337,
+        "h": 95
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 337,
+        "h": 95
+      },
+      "sourceSize": {
+        "w": 337,
+        "h": 95
+      }
+    },
+    "menu-jalur-pcb": {
+      "frame": {
+        "x": 801,
+        "y": 0,
+        "w": 337,
+        "h": 89
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 337,
+        "h": 89
+      },
+      "sourceSize": {
+        "w": 337,
+        "h": 89
+      }
+    },
+    "menu-cad-casing": {
+      "frame": {
+        "x": 1140,
+        "y": 0,
+        "w": 341,
+        "h": 89
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 341,
+        "h": 89
+      },
+      "sourceSize": {
+        "w": 341,
+        "h": 89
+      }
+    },
+    "menu-evaluasi-akhir": {
+      "frame": {
+        "x": 1483,
+        "y": 0,
+        "w": 331,
+        "h": 89
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 331,
+        "h": 89
+      },
+      "sourceSize": {
+        "w": 331,
+        "h": 89
+      }
+    },
+    "menu-desain-skema": {
+      "frame": {
+        "x": 0,
+        "y": 125,
+        "w": 337,
+        "h": 88
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 337,
+        "h": 88
+      },
+      "sourceSize": {
+        "w": 337,
+        "h": 88
+      }
+    }
+  },
+  "meta": {
+    "app": "e-drawlab/scripts/pack_atlas.py",
+    "image": "menu-buttons.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1814,
+      "h": 213
+    },
+    "scale": "1"
+  }
+}

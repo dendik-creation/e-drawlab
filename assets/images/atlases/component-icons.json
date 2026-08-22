@@ -1,0 +1,314 @@
+{
+  "frames": {
+    "elec-battery": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 340
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 340
+      },
+      "sourceSize": {
+        "w": 200,
+        "h": 340
+      }
+    },
+    "badge-checklist": {
+      "frame": {
+        "x": 202,
+        "y": 0,
+        "w": 240,
+        "h": 240
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 240,
+        "h": 240
+      },
+      "sourceSize": {
+        "w": 240,
+        "h": 240
+      }
+    },
+    "elec-etiket": {
+      "frame": {
+        "x": 444,
+        "y": 0,
+        "w": 200,
+        "h": 200
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 200
+      },
+      "sourceSize": {
+        "w": 200,
+        "h": 200
+      }
+    },
+    "elec-led": {
+      "frame": {
+        "x": 646,
+        "y": 0,
+        "w": 70,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 70,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 70,
+        "h": 100
+      }
+    },
+    "elec-capacitor": {
+      "frame": {
+        "x": 718,
+        "y": 0,
+        "w": 68,
+        "h": 98
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 68,
+        "h": 98
+      },
+      "sourceSize": {
+        "w": 68,
+        "h": 98
+      }
+    },
+    "elec-cube": {
+      "frame": {
+        "x": 788,
+        "y": 0,
+        "w": 109,
+        "h": 96
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 109,
+        "h": 96
+      },
+      "sourceSize": {
+        "w": 109,
+        "h": 96
+      }
+    },
+    "elec-opamp": {
+      "frame": {
+        "x": 899,
+        "y": 0,
+        "w": 100,
+        "h": 94
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 100,
+        "h": 94
+      },
+      "sourceSize": {
+        "w": 100,
+        "h": 94
+      }
+    },
+    "elec-inductor": {
+      "frame": {
+        "x": 1001,
+        "y": 0,
+        "w": 99,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 93
+      },
+      "sourceSize": {
+        "w": 99,
+        "h": 93
+      }
+    },
+    "elec-usb-connector": {
+      "frame": {
+        "x": 1102,
+        "y": 0,
+        "w": 82,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 82,
+        "h": 93
+      },
+      "sourceSize": {
+        "w": 82,
+        "h": 93
+      }
+    },
+    "elec-resistor": {
+      "frame": {
+        "x": 1186,
+        "y": 0,
+        "w": 96,
+        "h": 88
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 88
+      },
+      "sourceSize": {
+        "w": 96,
+        "h": 88
+      }
+    },
+    "elec-ic-chip-orange": {
+      "frame": {
+        "x": 1284,
+        "y": 0,
+        "w": 93,
+        "h": 86
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 93,
+        "h": 86
+      },
+      "sourceSize": {
+        "w": 93,
+        "h": 86
+      }
+    },
+    "elec-ic-chip": {
+      "frame": {
+        "x": 1379,
+        "y": 0,
+        "w": 93,
+        "h": 85
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 93,
+        "h": 85
+      },
+      "sourceSize": {
+        "w": 93,
+        "h": 85
+      }
+    },
+    "elec-pcb-trace": {
+      "frame": {
+        "x": 1474,
+        "y": 0,
+        "w": 88,
+        "h": 80
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 88,
+        "h": 80
+      },
+      "sourceSize": {
+        "w": 88,
+        "h": 80
+      }
+    },
+    "elec-terminal-block": {
+      "frame": {
+        "x": 1564,
+        "y": 0,
+        "w": 103,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 103,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 103,
+        "h": 78
+      }
+    },
+    "elec-diode": {
+      "frame": {
+        "x": 1669,
+        "y": 0,
+        "w": 101,
+        "h": 70
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 70
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 70
+      }
+    }
+  },
+  "meta": {
+    "app": "e-drawlab/scripts/pack_atlas.py",
+    "image": "component-icons.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1770,
+      "h": 340
+    },
+    "scale": "1"
+  }
+}
