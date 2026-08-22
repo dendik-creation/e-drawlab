@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
-import { applyStageCamera, STAGE_RESIZE_EVENT } from '../stage'
+import { applyStageCamera, stage, STAGE_RESIZE_EVENT } from '../stage'
 import { coverFit } from '../coverFit'
 import { queueHomeTextures } from './Home'
 import { audio } from '../audio/AudioDirector'
@@ -29,8 +29,16 @@ const ENTRANCE_DURATION = 320
 const ENTRANCE_STAGGER = 120
 const ENTRANCE_EASE = 'Back.easeOut'
 
-const BUTTON_WIDTH = 460
-const BUTTON_HEIGHT = 123
+// The button's own visible pill (matches the Figma frame's button rectangle).
+// Pulse-ring geometry hugs this box, not the asset's full canvas below.
+const BUTTON_WIDTH = 458
+const BUTTON_HEIGHT = 126
+// btn_masuklab.webp bakes its drop shadow into the canvas, so the exported
+// asset is larger than the pill itself — display it at its native size
+// (coverFit is a no-op here since the aspect ratio already matches) rather
+// than cropping the shadow off to fit BUTTON_WIDTH/HEIGHT.
+const BUTTON_ASSET_WIDTH = 488
+const BUTTON_ASSET_HEIGHT = 156
 
 // Idle affordance: three rings that burst out of the button's outline and fade,
 // a port of the CSS `box-shadow` pulse (three shadows, spreads 10/20/30 at
@@ -100,6 +108,7 @@ interface Gate {
  * region bubbles out/in when the loading state changes.
  */
 export class Splash extends Phaser.Scene {
+  private background!: Phaser.GameObjects.Image
   private track!: Phaser.GameObjects.Graphics
   private progressFill!: Phaser.GameObjects.Graphics
   private progressText!: Phaser.GameObjects.Text
@@ -116,7 +125,11 @@ export class Splash extends Phaser.Scene {
 
   preload() {
     applyStageCamera(this)
-    this.cameras.main.setBackgroundColor('#faf3e7')
+    this.cameras.main.setBackgroundColor('#f2ecf5')
+
+    // Full-bleed gradient behind everything else; already resident from
+    // Boot's preload, so it paints on the very first frame with no pop-in.
+    this.background = coverFit(this.add.image(960, 540, 'splash-bg'), stage.width, stage.height)
 
     const logo = coverFit(this.add.image(960, 390.5, 'main-logo'), 790, 263)
     this.prepareBubbleGroup([logo])
@@ -146,7 +159,10 @@ export class Splash extends Phaser.Scene {
   create() {
     session.set({ currentScene: 'Splash' })
 
-    const recentre = () => applyStageCamera(this)
+    const recentre = () => {
+      applyStageCamera(this)
+      coverFit(this.background, stage.width, stage.height)
+    }
     const syncGate = () => this.applyOrientationGate(BUBBLE_IN_DELAY)
     EventBus.on(STAGE_RESIZE_EVENT, recentre)
     EventBus.on(SESSION_CHANGED_EVENT, syncGate)
@@ -259,7 +275,7 @@ export class Splash extends Phaser.Scene {
     // Sits behind the button; drawn every frame by playPulseLoop() once the button is in.
     const pulse = this.add.graphics({ x: 960, y: 770.5 })
 
-    const button = coverFit(this.add.image(960, 770.5, 'btn-masuklab'), BUTTON_WIDTH, BUTTON_HEIGHT)
+    const button = coverFit(this.add.image(960, 770.5, 'btn-masuklab'), BUTTON_ASSET_WIDTH, BUTTON_ASSET_HEIGHT)
       .setInteractive({ useHandCursor: true })
 
     const baseScaleX = button.scaleX

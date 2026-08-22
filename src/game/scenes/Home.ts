@@ -15,7 +15,9 @@ import { audio } from '../audio/AudioDirector'
 import { settings, SETTINGS_CHANGED_EVENT, toggleMute } from '../state/settings'
 import { session } from '../state/session'
 import { isMenuCompleted } from '../state/progress'
+import homeGradientUrl from '../../../assets/images/05_backgrounds/home_gradient.webp'
 import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.webp'
+import mascotUrl from '../../../assets/images/00_identity/mascot.webp'
 import bgmOnUrl from '../../../assets/images/02_global_buttons/global_bgm_on.webp'
 import bgmOffUrl from '../../../assets/images/02_global_buttons/global_bgm_off.webp'
 import menuDesainSkemaUrl from '../../../assets/images/01_menu_buttons/menu_desain_skema.webp'
@@ -30,7 +32,9 @@ import badgeChecklistUrl from '../../../assets/images/03_electronic_assets/badge
  * Splash queues these behind its progress bar so Home can paint on frame one.
  */
 const HOME_TEXTURES: Record<string, string> = {
+  'home-gradient': homeGradientUrl,
   'home-bg': homeBgUrl,
+  mascot: mascotUrl,
   'bgm-on': bgmOnUrl,
   'bgm-off': bgmOffUrl,
   'menu-desain-skema': menuDesainSkemaUrl,
@@ -48,63 +52,39 @@ export function queueHomeTextures(scene: Phaser.Scene) {
 }
 
 /*
- * The menu panel is a clipboard: a board with a printed sheet under a metal
- * clip. It keeps the Figma frame's width and horizontal position, but reaches
- * higher than the original flat rectangle so the sheet can carry the logo too —
- * a clip landing behind the wordmark would read as an accident.
+ * The menu panel is a frosted-glass card — a translucent white rounded
+ * rectangle over the backdrop, with a small tab straddling its top edge
+ * (the same overlap trick the old clipboard's clip used, now a plain purple
+ * pill instead of a clip). Coordinates are sliced straight from the Figma
+ * frame's "Group 7" (node 98:21).
  */
-
-/**
- * Drops board, sheet, logo and menu down the design frame together, evening out
- * the margin above the clip against the one below the board. It appears in both
- * BOARD_Y and every child's coordinate, so it cancels out of the local geometry
- * and only affects where the prop is anchored.
- */
-const CLIPBOARD_OFFSET_Y = 40
-
-const BOARD_X = 447.5
-const BOARD_Y = 488 + CLIPBOARD_OFFSET_Y
-const BOARD_WIDTH = 533
-const BOARD_HEIGHT = 820
-const BOARD_RADIUS = 30
-const BOARD_RIM = 0xb9b1a4
-const BOARD_FACE = 0xd9d3c9
-/** Face sits inside the rim and nudged up-left, so the wider bottom-right edge reads as thickness. */
-const BOARD_RIM_THICKNESS = 5
-const BOARD_FACE_OFFSET_X = -2
-const BOARD_FACE_OFFSET_Y = -3
+const BOARD_X = 444.5
+const BOARD_Y = 565
+const BOARD_WIDTH = 529
+const BOARD_HEIGHT = 856
+const BOARD_RADIUS = 56
+const BOARD_FILL = 0xffffff
+const BOARD_FILL_ALPHA = 0.35
 const BOARD_SHADOW_OFFSET_X = 4
-const BOARD_SHADOW_OFFSET_Y = 7
-const BOARD_SHADOW_ALPHA = 0.15
+const BOARD_SHADOW_OFFSET_Y = 4
+const BOARD_SHADOW_ALPHA = 0.12
+/** No real backdrop-blur in Phaser's Graphics — a soft light stroke stands in for the CSS inset glow. */
+const BOARD_GLOW_ALPHA = 0.5
 
-const PAPER_INSET_X = 22
-const PAPER_INSET_TOP = 40
-const PAPER_INSET_BOTTOM = 26
-const PAPER_RADIUS = 10
-const PAPER_FILL = 0xfbf0dc
-const PAPER_EDGE = 0xece0c8
-const PAPER_SHADOW_ALPHA = 0.1
+const TAB_WIDTH = 270
+const TAB_HEIGHT = 87
+const TAB_RADIUS = 15
+const TAB_FILL = 0xdfb1e0
 
-const CLIP_WIDTH = 172
-const CLIP_HEIGHT = 98
-const CLIP_RADIUS = 14
-const CLIP_FILL = 0x2b909f
-const CLIP_EDGE = 0x1d6f7c
-const CLIP_SHADOW_ALPHA = 0.12
-const CLIP_BAR_WIDTH = 156
-const CLIP_BAR_HEIGHT = 18
-const CLIP_BAR_RADIUS = 7
-const CLIP_BAR_OFFSET_Y = 28
-const CLIP_HOLE_OFFSET_Y = -22
-const CLIP_HOLE_RADIUS = 12
-const CLIP_HOLE_FILL = 0x14535e
+const GROOVE_WIDTH = 236
+const GROOVE_HEIGHT = 11
+const GROOVE_FILL = 0xb881b9
 
-// Sized to clear the sheet's top edge and the first menu button; the Figma
-// dimensions overflowed both once the logo moved onto the paper.
-const LOGO_X = 447.5
-const LOGO_Y = 208.5 + CLIPBOARD_OFFSET_Y
-const LOGO_WIDTH = 447
-const LOGO_HEIGHT = 149
+// Sliced from the Figma frame directly (Group 7 is anchored at BOARD_X/Y).
+const LOGO_X = 445
+const LOGO_Y = 279.5
+const LOGO_WIDTH = 398
+const LOGO_HEIGHT = 133
 
 // Idle rock: the logo tips to one side, then swings across to the other and
 // back, forever, once the entrance has landed. Kept to a few degrees — the
@@ -126,25 +106,42 @@ const PRESS_SCALE = 0.92
 const PRESS_DOWN_DURATION = 90
 const PRESS_UP_DURATION = 180
 
+/** Every button sits on a uniform 337x85 + 110px-pitch grid (Figma "Frame 7", node 98:18). */
+const MENU_BUTTON_WIDTH = 337
+const MENU_BUTTON_HEIGHT = 85
+const MENU_ITEM_PITCH = 110
+const MENU_FIRST_ITEM_Y = 427.5
+/**
+ * menu_*.webp bakes its drop shadow into the canvas (same as btn_masuklab.webp
+ * in Splash), so the exported asset is slightly larger than the button itself —
+ * display it at its native size rather than cropping the shadow away.
+ */
+const MENU_BUTTON_ASSET_WIDTH = 351
+const MENU_BUTTON_ASSET_HEIGHT = 99
+
 /** Menu entries in design-space geometry, top to bottom, sliced from the Figma frame. */
 const MENU_ITEMS = [
-  { action: 'desain-skema', texture: 'menu-desain-skema', x: 444.5, y: 343, width: 337, height: 88 },
-  { action: 'jalur-pcb', texture: 'menu-jalur-pcb', x: 444.5, y: 452, width: 337, height: 89 },
-  { action: 'cad-casing', texture: 'menu-cad-casing', x: 444.5, y: 561.5, width: 341, height: 89 },
-  { action: 'evaluasi-akhir', texture: 'menu-evaluasi-akhir', x: 445, y: 672.5, width: 331, height: 89 },
-  { action: 'keluar', texture: 'menu-keluar', x: 444.5, y: 782.5, width: 337, height: 95 },
+  { action: 'desain-skema', texture: 'menu-desain-skema' },
+  { action: 'jalur-pcb', texture: 'menu-jalur-pcb' },
+  { action: 'cad-casing', texture: 'menu-cad-casing' },
+  { action: 'evaluasi-akhir', texture: 'menu-evaluasi-akhir' },
+  { action: 'keluar', texture: 'menu-keluar' },
 ] as const
 
 export type HomeMenuAction = (typeof MENU_ITEMS)[number]['action']
 
-/** "Sudah dipelajari" badge — straddles a completed menu button's top-right corner, same overlap trick as the clip on the sheet. */
+/** "Sudah dipelajari" badge — straddles a completed menu button's top-right corner, same overlap trick as the tab on the panel. */
 const BADGE_SIZE = 44
 const BADGE_INSET_X = 14
 const BADGE_INSET_Y = 10
 
-// Responsive layout. Everything below is expressed relative to the clipboard's
-// centre, which is the content container's origin.
-const CLIPBOARD_TOP_EXTENT = BOARD_HEIGHT / 2 + CLIP_HEIGHT / 2
+// Responsive layout. Everything below is expressed relative to the glass
+// panel's centre, which is the content container's origin.
+/** Design-space y of the tab's top edge (101), the highest point the prop reaches. */
+const TAB_TOP_Y = 101
+/** Design-space y of the groove's top edge, sitting near the tab's bottom. */
+const GROOVE_TOP_Y = 164
+const CLIPBOARD_TOP_EXTENT = BOARD_Y - TAB_TOP_Y
 const CLIPBOARD_BOTTOM_EXTENT = BOARD_HEIGHT / 2
 /** Breathing room kept between the prop and the stage edge, in design units. */
 const CLIPBOARD_MARGIN = 40
@@ -158,6 +155,29 @@ const HUD_INSET_X = DESIGN_WIDTH - BGM_X
 const HUD_INSET_Y = BGM_Y
 
 /**
+ * Photo overlay + mascot both hug the design frame's right edge (Figma nodes
+ * 102:28 and 101:23), so they're anchored from DESIGN_WIDTH rather than from
+ * the panel like `content` — same bleed-with-the-stage treatment as the HUD.
+ */
+const PHOTO_OVERLAY_WIDTH = 1700
+const PHOTO_OVERLAY_HEIGHT = 1080
+
+const MASCOT_WIDTH = 474
+const MASCOT_HEIGHT = 840
+const MASCOT_TOP = 195
+const MASCOT_RIGHT_INSET = DESIGN_WIDTH - 1654 // 1180 + 474
+
+/** Mascot's own entrance: slides + fades in from off-screen right, instead of the shared bubble-in. */
+const MASCOT_ENTER_OFFSET_X = 900
+const MASCOT_ENTER_DURATION = 720
+const MASCOT_ENTER_DELAY = 600
+const MASCOT_ENTER_EASE = 'Cubic.easeOut'
+/** Reverse of MASCOT_ENTER_EASE, for a symmetric slide back out. */
+const MASCOT_EXIT_EASE = 'Cubic.easeIn'
+/** Matches BubbleSequence's own reduced-motion cross-fade duration. */
+const REDUCED_MOTION_DURATION = 220
+
+/**
  * Home menu. Every element bubbles in staggered on load, and bubbles back out
  * staggered when a menu item is picked — the scene deliberately does NOT
  * navigate afterwards; it emits `home-exit-complete` with the chosen action so
@@ -166,10 +186,13 @@ const HUD_INSET_Y = BGM_Y
 export class Home extends Phaser.Scene {
   private bubbles!: BubbleSequence
   private background!: Phaser.GameObjects.Image
-  /** Clipboard, logo and menu — one unit, scaled and anchored to the stage. */
+  /** Glass panel, logo and menu — one unit, scaled and anchored to the stage. */
   private content!: Phaser.GameObjects.Container
   /** Screen-corner furniture, anchored independently of the menu. */
   private hud!: Phaser.GameObjects.Container
+  /** Photo overlay + mascot — anchored to the design frame's right edge, bleeding with the stage like the HUD. */
+  private backdrop!: Phaser.GameObjects.Container
+  private mascot!: Phaser.GameObjects.Image
   private interactives: (Phaser.GameObjects.Image | Phaser.GameObjects.Container)[] = []
   private bgmToggle!: Phaser.GameObjects.Image
   private exiting = false
@@ -184,7 +207,7 @@ export class Home extends Phaser.Scene {
 
   create() {
     applyStageCamera(this)
-    this.cameras.main.setBackgroundColor('#faf3e7')
+    this.cameras.main.setBackgroundColor('#f2ecf5')
 
     session.set({ currentScene: 'Home' })
     audio.setProfile('menu')
@@ -198,19 +221,20 @@ export class Home extends Phaser.Scene {
     // Fitted to the stage, not the design frame, so it bleeds into whatever
     // extra width or height the viewport's aspect ratio adds. Barely scales
     // during the entrance, so no canvas edge is ever exposed behind it.
-    this.background = this.add.image(960, 540, 'home-bg')
+    this.background = this.add.image(960, 540, 'home-gradient')
     this.bubbles = new BubbleSequence(this)
     this.bubbles.add(coverFit(this.background, stage.width, stage.height), {
       scaleFrom: 1.04,
     })
 
+    // Created before `content` so it renders behind the glass panel — the
+    // photo overlay's left edge fades under the panel rather than over it.
+    this.backdrop = this.add.container(0, 0)
     this.content = this.add.container(0, 0)
     this.hud = this.add.container(0, 0)
 
-    // Children are positioned relative to the clipboard's centre. Both design
-    // constants carry CLIPBOARD_OFFSET_Y, so it cancels out of every local
-    // coordinate and only the container's own placement decides the framing.
-    const clipboard = this.bubbles.add(this.buildClipboard())
+    // Children are positioned relative to the glass panel's centre.
+    const panel = this.bubbles.add(this.buildGlassPanel())
 
     const logo = this.bubbles.add(
       coverFit(
@@ -222,11 +246,12 @@ export class Home extends Phaser.Scene {
 
     this.bubbles.add(this.buildBgmToggle())
 
-    const buttons = MENU_ITEMS.map((item) => {
-      // MENU_ITEMS keeps the raw Figma coordinates so they stay traceable.
-      const buttonX = item.x - BOARD_X
-      const buttonY = item.y + CLIPBOARD_OFFSET_Y - BOARD_Y
-      const button = this.add.image(0, 0, item.texture).setDisplaySize(item.width, item.height)
+    const buttons = MENU_ITEMS.map((item, index) => {
+      const buttonX = 0
+      const buttonY = MENU_FIRST_ITEM_Y + index * MENU_ITEM_PITCH - BOARD_Y
+      const button = this.add
+        .image(0, 0, item.texture)
+        .setDisplaySize(MENU_BUTTON_ASSET_WIDTH, MENU_BUTTON_ASSET_HEIGHT)
 
       // "Sudah dipelajari" badge, straddling the button's top-right corner —
       // only markMenuCompleted() (DesainSkema.ts, on reaching evaluasi) has
@@ -240,13 +265,13 @@ export class Home extends Phaser.Scene {
       const wrapChildren: Phaser.GameObjects.Image[] = [button]
       if (isMenuCompleted(item.action)) {
         const badge = this.add
-          .image(item.width / 2 - BADGE_INSET_X, -item.height / 2 + BADGE_INSET_Y, 'badge-checklist')
+          .image(MENU_BUTTON_WIDTH / 2 - BADGE_INSET_X, -MENU_BUTTON_HEIGHT / 2 + BADGE_INSET_Y, 'badge-checklist')
           .setDisplaySize(BADGE_SIZE, BADGE_SIZE)
         wrapChildren.push(badge)
       }
 
       const wrap = this.add.container(buttonX, buttonY, wrapChildren)
-      wrap.setSize(item.width, item.height)
+      wrap.setSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)
 
       this.attachButtonBehaviour(wrap, () => this.exitTo(item.action))
       this.bubbles.add(wrap)
@@ -254,8 +279,13 @@ export class Home extends Phaser.Scene {
       return wrap
     })
 
-    this.content.add([clipboard, logo, ...buttons])
+    this.content.add([panel, logo, ...buttons])
     this.hud.add(this.bgmToggle)
+
+    const photoOverlay = this.bubbles.add(this.buildPhotoOverlay(), { scaleFrom: 1.04 })
+    this.mascot = this.buildMascot()
+    this.backdrop.add([photoOverlay, this.mascot])
+
     this.layoutStage()
 
     const refit = () => this.fitToStage()
@@ -279,6 +309,7 @@ export class Home extends Phaser.Scene {
       if (!settings.get().reducedMotion) this.startLogoIdle(logo)
       this.interactives.forEach((button) => button.setInteractive({ useHandCursor: true }))
     })
+    this.playMascotEntrance()
   }
 
   /** Re-centres the design frame, re-bleeds the background and re-lays out after an aspect change. */
@@ -324,32 +355,36 @@ export class Home extends Phaser.Scene {
     this.hud
       .setScale(scale)
       .setPosition(bounds.right - HUD_INSET_X * scale, bounds.top + HUD_INSET_Y * scale)
+
+    // Anchored to the design frame's top-right corner, same as the HUD, so the
+    // photo overlay and mascot bleed with the stage instead of drifting away
+    // from the composition's right edge on a non-16:9 viewport.
+    this.backdrop.setScale(scale).setPosition(bounds.right, bounds.top)
   }
 
   /**
-   * Board, sheet and clip in one Graphics so the whole prop bubbles as a single
-   * object. Everything is drawn around the board's centre; the clip straddles
-   * the top edge and overlaps the sheet, which is what makes it read as holding
-   * the paper down rather than floating above it.
+   * Frosted-glass panel and its top tab in one Graphics so the whole prop
+   * bubbles as a single object. Everything is drawn around the panel's
+   * centre; the tab straddles the top edge, the same overlap trick the old
+   * clipboard's clip used to read as attached rather than floating above it.
+   * Phaser's Graphics has no backdrop-blur equivalent, so the CSS
+   * `backdrop-blur` behind the translucent fill is dropped — a flat
+   * semi-transparent white reads close enough over this soft a background.
    */
-  private buildClipboard() {
+  private buildGlassPanel() {
     const halfWidth = BOARD_WIDTH / 2
     const halfHeight = BOARD_HEIGHT / 2
 
-    const paperLeft = -halfWidth + PAPER_INSET_X
-    const paperTop = -halfHeight + PAPER_INSET_TOP
-    const paperWidth = BOARD_WIDTH - PAPER_INSET_X * 2
-    const paperHeight = BOARD_HEIGHT - PAPER_INSET_TOP - PAPER_INSET_BOTTOM
-
-    const clipY = -halfHeight
-    const clipLeft = -CLIP_WIDTH / 2
-    const clipTop = clipY - CLIP_HEIGHT / 2
+    // TAB_TOP_Y/GROOVE_TOP_Y are the Figma frame's absolute y for each edge;
+    // subtracting BOARD_Y re-expresses them relative to the panel's centre.
+    const tabTop = TAB_TOP_Y - BOARD_Y
+    const grooveTop = GROOVE_TOP_Y - BOARD_Y
 
     return (
       this.add
         .graphics({ x: 0, y: 0 })
 
-        // Board: cast shadow, rim, then the lit face inset within it.
+        // Panel: cast shadow, then the translucent glass face with an inset glow.
         .fillStyle(0x000000, BOARD_SHADOW_ALPHA)
         .fillRoundedRect(
           -halfWidth + BOARD_SHADOW_OFFSET_X,
@@ -358,43 +393,62 @@ export class Home extends Phaser.Scene {
           BOARD_HEIGHT,
           BOARD_RADIUS,
         )
-        .fillStyle(BOARD_RIM, 1)
+        .fillStyle(BOARD_FILL, BOARD_FILL_ALPHA)
         .fillRoundedRect(-halfWidth, -halfHeight, BOARD_WIDTH, BOARD_HEIGHT, BOARD_RADIUS)
-        .fillStyle(BOARD_FACE, 1)
-        .fillRoundedRect(
-          -halfWidth + BOARD_RIM_THICKNESS + BOARD_FACE_OFFSET_X,
-          -halfHeight + BOARD_RIM_THICKNESS + BOARD_FACE_OFFSET_Y,
-          BOARD_WIDTH - BOARD_RIM_THICKNESS * 2,
-          BOARD_HEIGHT - BOARD_RIM_THICKNESS * 2,
-          BOARD_RADIUS - BOARD_RIM_THICKNESS,
-        )
+        .lineStyle(2, 0xffffff, BOARD_GLOW_ALPHA)
+        .strokeRoundedRect(-halfWidth + 1, -halfHeight + 1, BOARD_WIDTH - 2, BOARD_HEIGHT - 2, BOARD_RADIUS - 1)
 
-        // Sheet, lifted off the board by its own contact shadow.
-        .fillStyle(0x000000, PAPER_SHADOW_ALPHA)
-        .fillRoundedRect(paperLeft + 2, paperTop + 3, paperWidth, paperHeight, PAPER_RADIUS)
-        .fillStyle(PAPER_FILL, 1)
-        .fillRoundedRect(paperLeft, paperTop, paperWidth, paperHeight, PAPER_RADIUS)
-        .lineStyle(2, PAPER_EDGE, 1)
-        .strokeRoundedRect(paperLeft, paperTop, paperWidth, paperHeight, PAPER_RADIUS)
-
-        // Clip: plate, pressure bar, punched hole.
-        .fillStyle(0x000000, CLIP_SHADOW_ALPHA)
-        .fillRoundedRect(clipLeft + 2, clipTop + 4, CLIP_WIDTH, CLIP_HEIGHT, CLIP_RADIUS)
-        .fillStyle(CLIP_FILL, 1)
-        .fillRoundedRect(clipLeft, clipTop, CLIP_WIDTH, CLIP_HEIGHT, CLIP_RADIUS)
-        .lineStyle(3, CLIP_EDGE, 1)
-        .strokeRoundedRect(clipLeft, clipTop, CLIP_WIDTH, CLIP_HEIGHT, CLIP_RADIUS)
-        .fillStyle(CLIP_EDGE, 1)
-        .fillRoundedRect(
-          -CLIP_BAR_WIDTH / 2,
-          clipY + CLIP_BAR_OFFSET_Y - CLIP_BAR_HEIGHT / 2,
-          CLIP_BAR_WIDTH,
-          CLIP_BAR_HEIGHT,
-          CLIP_BAR_RADIUS,
-        )
-        .fillStyle(CLIP_HOLE_FILL, 1)
-        .fillCircle(0, clipY + CLIP_HOLE_OFFSET_Y, CLIP_HOLE_RADIUS)
+        // Tab: solid pill straddling the panel's top edge, plus its groove.
+        .fillStyle(TAB_FILL, 1)
+        .fillRoundedRect(-TAB_WIDTH / 2, tabTop, TAB_WIDTH, TAB_HEIGHT, TAB_RADIUS)
+        .fillStyle(GROOVE_FILL, 1)
+        .fillRoundedRect(-GROOVE_WIDTH / 2, grooveTop, GROOVE_WIDTH, GROOVE_HEIGHT, GROOVE_HEIGHT / 2)
     )
+  }
+
+  /**
+   * The workshop photo, faded into the gradient by an alpha mask baked into
+   * home_bg.webp (Figma's "Mask group", node 102:28). Anchored to the
+   * backdrop's origin (the design frame's top-right corner) with a
+   * top-right origin, so it sits flush against the frame's right edge same
+   * as it does in Figma, and bleeds outward with the stage like the HUD.
+   */
+  private buildPhotoOverlay() {
+    return this.add
+      .image(0, 0, 'home-bg')
+      .setOrigin(1, 0)
+      .setDisplaySize(PHOTO_OVERLAY_WIDTH, PHOTO_OVERLAY_HEIGHT)
+  }
+
+  /** Figma's "chr 1" (node 101:23) — same top-right anchoring as the photo overlay. */
+  private buildMascot() {
+    return this.add
+      .image(-MASCOT_RIGHT_INSET, MASCOT_TOP, 'mascot')
+      .setOrigin(1, 0)
+      .setDisplaySize(MASCOT_WIDTH, MASCOT_HEIGHT)
+  }
+
+  /**
+   * The mascot's own entrance — slides and fades in from off-screen right,
+   * instead of the shared bubble-in every other element gets. Its exit
+   * (playMascotExit()) just reverses this, sliding back out to the right
+   * rather than shrinking like the rest of the bubble-out.
+   */
+  private playMascotEntrance() {
+    const restX = this.mascot.x
+    const reduced = settings.get().reducedMotion
+
+    if (!reduced) this.mascot.setPosition(restX + MASCOT_ENTER_OFFSET_X, this.mascot.y)
+    this.mascot.setAlpha(0)
+
+    this.tweens.add({
+      targets: this.mascot,
+      x: restX,
+      alpha: 1,
+      duration: reduced ? REDUCED_MOTION_DURATION : MASCOT_ENTER_DURATION,
+      delay: reduced ? 0 : MASCOT_ENTER_DELAY,
+      ease: reduced ? 'Sine.easeInOut' : MASCOT_ENTER_EASE,
+    })
   }
 
   /**
@@ -522,5 +576,20 @@ export class Home extends Phaser.Scene {
     })
 
     this.bubbles.playOut(() => EventBus.emit('home-exit-complete', action))
+    this.playMascotExit()
+  }
+
+  /** Reverse of playMascotEntrance(): slides back out to the right and fades, no scale. */
+  private playMascotExit() {
+    const reduced = settings.get().reducedMotion
+
+    this.tweens.killTweensOf(this.mascot)
+    this.tweens.add({
+      targets: this.mascot,
+      x: this.mascot.x + MASCOT_ENTER_OFFSET_X,
+      alpha: 0,
+      duration: reduced ? REDUCED_MOTION_DURATION : MASCOT_ENTER_DURATION,
+      ease: reduced ? 'Sine.easeInOut' : MASCOT_EXIT_EASE,
+    })
   }
 }
