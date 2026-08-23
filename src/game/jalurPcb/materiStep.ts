@@ -62,6 +62,15 @@ const NEXT_BUTTON_RADIUS = 16
 const NEXT_BUTTON_X = DESIGN_WIDTH - 180
 const NEXT_BUTTON_Y = 1006
 
+/** Scroll indicator: a thin track+thumb pinned to the viewport's right edge, outside the scroll-clipped content. */
+const SCROLLBAR_X = DESIGN_WIDTH - 28
+const SCROLLBAR_WIDTH = 6
+const SCROLLBAR_RADIUS = SCROLLBAR_WIDTH / 2
+const SCROLLBAR_MIN_THUMB_HEIGHT = 40
+const SCROLLBAR_TRACK_COLOR = 0x66878e
+const SCROLLBAR_TRACK_ALPHA = 0.15
+const SCROLLBAR_THUMB_ALPHA = 0.55
+
 /** One content section's authored position within the scrollable column, taken straight from the Figma frame. */
 interface SectionSpec {
   y: number
@@ -107,6 +116,8 @@ export class MateriStep {
   private nextBg!: Phaser.GameObjects.Graphics
   private nextLabel!: Phaser.GameObjects.Text
   private nextEnabled = false
+  private scrollbarThumb?: Phaser.GameObjects.Graphics
+  private scrollbarThumbHeight = 0
   private onWheel?: (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[], dx: number, dy: number, dz: number) => void
   /** Each section's vertical span, for `updateSectionCulling`. */
   private sectionBounds: SectionBounds[] = []
@@ -158,10 +169,12 @@ export class MateriStep {
     // header regardless of mask edge cases.
     const topGuard = scene.add.graphics().fillStyle(PAGE_BACKGROUND, 1).fillRect(0, 0, DESIGN_WIDTH, VIEWPORT_TOP)
 
+    const scrollbar = this.buildScrollbar()
+
     // `maskShape` is deliberately never added to the display list — `scene.make`
     // (unlike `scene.add`) skips that step, so it stays a pure geometry source
     // for the mask instead of painting a solid rectangle over the viewport.
-    body.add([this.scrollLayer, topGuard, this.dragZone, next])
+    body.add([this.scrollLayer, topGuard, this.dragZone, ...scrollbar, next])
 
     // Content that already fits without scrolling counts as "read" immediately.
     if (this.maxScroll <= 0) this.setNextEnabled(true)
@@ -172,6 +185,43 @@ export class MateriStep {
     // — otherwise all nine sections sit in the mask's offscreen pass from
     // frame one, entrance animation or not.
     this.updateSectionCulling()
+    this.updateScrollbarThumb()
+  }
+
+  /**
+   * Track + thumb pinned outside `scrollLayer`'s mask, so the reader always
+   * has a visual cue that Langkah 1 scrolls (and roughly how much is left) —
+   * unlike the drag/wheel handlers, this is pure affordance and has no input
+   * of its own. Hidden entirely when content already fits the viewport.
+   */
+  private buildScrollbar(): Phaser.GameObjects.GameObject[] {
+    if (this.maxScroll <= 0) return []
+
+    const scene = this.ctx.scene
+    const track = scene.add
+      .graphics()
+      .fillStyle(SCROLLBAR_TRACK_COLOR, SCROLLBAR_TRACK_ALPHA)
+      .fillRoundedRect(SCROLLBAR_X, VIEWPORT_TOP, SCROLLBAR_WIDTH, VIEWPORT_HEIGHT, SCROLLBAR_RADIUS)
+
+    this.scrollbarThumbHeight = Math.max(SCROLLBAR_MIN_THUMB_HEIGHT, (VIEWPORT_HEIGHT * VIEWPORT_HEIGHT) / (VIEWPORT_HEIGHT + this.maxScroll))
+    this.scrollbarThumb = scene.add.graphics()
+    this.drawScrollbarThumb(VIEWPORT_TOP)
+
+    return [track, this.scrollbarThumb]
+  }
+
+  private drawScrollbarThumb(y: number) {
+    this.scrollbarThumb
+      ?.clear()
+      .fillStyle(BORDER_COLOR, SCROLLBAR_THUMB_ALPHA)
+      .fillRoundedRect(SCROLLBAR_X, y, SCROLLBAR_WIDTH, this.scrollbarThumbHeight, SCROLLBAR_RADIUS)
+  }
+
+  private updateScrollbarThumb() {
+    if (!this.scrollbarThumb) return
+    const progress = this.maxScroll <= 0 ? 0 : (VIEWPORT_TOP - this.scrollLayer.y) / this.maxScroll
+    const travel = VIEWPORT_HEIGHT - this.scrollbarThumbHeight
+    this.drawScrollbarThumb(VIEWPORT_TOP + Phaser.Math.Clamp(progress, 0, 1) * travel)
   }
 
   /**
@@ -257,6 +307,7 @@ export class MateriStep {
     const max = VIEWPORT_TOP
     this.scrollLayer.y = Phaser.Math.Clamp(y, min, max)
     this.updateSectionCulling()
+    this.updateScrollbarThumb()
 
     if (!this.reachedBottom && this.scrollLayer.y <= min + SCROLL_BOTTOM_EPSILON) {
       this.reachedBottom = true
