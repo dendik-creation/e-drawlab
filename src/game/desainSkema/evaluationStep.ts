@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { DESIGN_WIDTH } from '../stage'
 import { coverFit, containFit } from '../coverFit'
 import { audio } from '../audio/AudioDirector'
-import { shuffleOptions, shuffleQuestions, scoreTier, type EvaluationConfig, type QuizQuestion } from './evaluation'
+import { shuffleOptions, shuffleQuestions, scoreTier, type EvaluationConfig, type QuizQuestion, type ScoreTier } from './evaluation'
 import {
   attachButtonBehaviour,
   buildActionButton,
@@ -673,11 +673,25 @@ export class EvaluationStep {
 
     const total = state.questions.length
     const score = state.score
-    const tier = scoreTier(score, total)
+
+    // Passing-grade quizzes (Evaluasi Akhir) score a raw weighted value
+    // against a fixed threshold instead of the softer 3-tier read; the tier
+    // record is still used for icon/message selection, collapsed to just
+    // 'excellent' (pass) / 'retry' (fail) — 'good' never applies here.
+    const passGrade = this.config.passGrade
+    const tier: ScoreTier = passGrade ? (score * passGrade.weightPerQuestion >= passGrade.threshold ? 'excellent' : 'retry') : scoreTier(score, total)
+    const passed = tier === 'excellent'
+    const displayScore = passGrade ? score * passGrade.weightPerQuestion : score
+    const displayTotal = passGrade ? passGrade.weightPerQuestion * total : total
+    const message = passGrade
+      ? passed
+        ? `Selamat! Nilai kamu ${displayScore}. Sudah mencapai passing grade (${passGrade.threshold}).`
+        : `Nilai kamu ${displayScore}. Belum mencapai passing grade (${passGrade.threshold}). Pelajari kembali materi dan coba lagi.`
+      : this.config.tierMessage[tier]
     const icon = Phaser.Utils.Array.GetRandom(this.config.resultIcons[tier])
 
     // Quiz finished — the journey can mark itself done (Home's menu badge).
-    this.config.onComplete?.()
+    this.config.onComplete?.({ passed, score, total })
 
     const content = this.scene.add.container(0, 0)
     this.body.add(content)
@@ -722,7 +736,7 @@ export class EvaluationStep {
     content.add(skorLabel)
 
     const scoreBig = this.scene.add
-      .text(EVAL_CENTER_X - 6, cardTop + 230, String(score), {
+      .text(EVAL_CENTER_X - 6, cardTop + 230, String(displayScore), {
         fontFamily: FONT_HEADING,
         fontStyle: '800',
         fontSize: '48px',
@@ -733,7 +747,7 @@ export class EvaluationStep {
     content.add(scoreBig)
 
     const scoreTotal = this.scene.add
-      .text(EVAL_CENTER_X + 6, cardTop + 230, `/ ${total}`, {
+      .text(EVAL_CENTER_X + 6, cardTop + 230, `/ ${displayTotal}`, {
         fontFamily: FONT_HEADING,
         fontStyle: '700',
         fontSize: '22px',
@@ -744,7 +758,7 @@ export class EvaluationStep {
     content.add(scoreTotal)
 
     const messageText = this.scene.add
-      .text(EVAL_CENTER_X, cardTop + 288, this.config.tierMessage[tier], {
+      .text(EVAL_CENTER_X, cardTop + 288, message, {
         fontFamily: FONT_BODY,
         fontStyle: '600',
         fontSize: '15px',

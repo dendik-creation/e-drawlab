@@ -9,12 +9,14 @@ import { Home, type HomeMenuAction } from './scenes/Home'
 import { DesainSkema } from './scenes/DesainSkema'
 import { JalurPcb } from './scenes/JalurPcb'
 import { CadCasing } from './scenes/CadCasing'
+import { EvaluasiAkhir } from './scenes/EvaluasiAkhir'
 
 /** Where each Home menu action lands. Actions missing here have no destination scene yet. */
 const HOME_DESTINATIONS: Partial<Record<HomeMenuAction, string>> = {
   'desain-skema': 'DesainSkema',
   'jalur-pcb': 'JalurPcb',
   'cad-casing': 'CadCasing',
+  'evaluasi-akhir': 'EvaluasiAkhir',
 }
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -34,7 +36,7 @@ const config: Phaser.Types.Core.GameConfig = {
     // it Phaser assumes desktop-class multi-texture batching everywhere.
     autoMobileTextures: true,
   },
-  scene: [Boot, Splash, Home, DesainSkema, JalurPcb, CadCasing],
+  scene: [Boot, Splash, Home, DesainSkema, JalurPcb, CadCasing, EvaluasiAkhir],
 }
 
 let game: Phaser.Game | null = null

@@ -100,6 +100,19 @@ export const SCORE_TIER_MESSAGE: Record<ScoreTier, string> = {
  * matter, so Desain Skema and Jalur PCB share one implementation and differ
  * only in this object.
  */
+/**
+ * Weighted pass/fail scoring, used instead of the 3-tier excellent/good/retry
+ * read when a quiz has a hard passing grade (Evaluasi Akhir: 10 questions,
+ * 10 points each, 80/100 to pass) rather than DesainSkema/JalurPcb/CadCasing's
+ * softer "how well did you do" tiers.
+ */
+export interface PassGradeConfig {
+  /** Points awarded per correct answer, e.g. 10. */
+  weightPerQuestion: number
+  /** Minimum weighted score required to pass, e.g. 80. */
+  threshold: number
+}
+
 export interface EvaluationConfig {
   questions: QuizQuestion[]
   /** Draw only this many questions (after shuffling) from `questions` — omit to use the whole bank. */
@@ -115,8 +128,15 @@ export interface EvaluationConfig {
   tierMessage: Record<ScoreTier, string>
   /** Texture keys for the two static images filling the margins either side of the card. */
   sideArt: { left: string; right: string }
+  /**
+   * When set, the results card scores by `PassGradeConfig` instead of the
+   * 3-tier `scoreTier` read — a raw weighted score against a fixed threshold,
+   * with the tier record above still used to pick an icon/message (mapped to
+   * 'excellent' on a pass, 'retry' on a fail) but not for the pass/fail call.
+   */
+  passGrade?: PassGradeConfig
   /** Fired when the results card renders — where a journey marks itself completed. */
-  onComplete?: () => void
+  onComplete?: (result: { passed: boolean; score: number; total: number }) => void
   /**
    * Whether this is the journey's last evaluation. Controls the results
    * card's buttons: a final step gets "Coba Lagi" + "Ke Beranda" (the
