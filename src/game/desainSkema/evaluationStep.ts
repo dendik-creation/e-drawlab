@@ -22,31 +22,45 @@ import {
 } from './uiKit'
 
 const EVAL_CENTER_X = DESIGN_WIDTH / 2
-const EVAL_CONTENT_TOP = 200
-const EVAL_CARD_WIDTH = 672
+const EVAL_CONTENT_TOP = 176
+/**
+ * Wide workspace (redesign, ADR pending): fills ~83% of the 1920 design
+ * frame instead of the old 672px centered column, so landscape/desktop
+ * screens stop showing a narrow quiz floating in empty space.
+ */
+const EVAL_CARD_WIDTH = 1600
 const EVAL_CARD_LEFT = EVAL_CENTER_X - EVAL_CARD_WIDTH / 2
 const EVAL_PROGRESS_HEIGHT = 10
-const EVAL_PROGRESS_ROW_HEIGHT = 20
-const EVAL_SECTION_GAP = 24
+/** "Soal N dari total" sits on its own line above the bar (not squeezed inline) — see brief section 6. */
+const EVAL_PROGRESS_LABEL_HEIGHT = 22
+const EVAL_PROGRESS_LABEL_GAP = 10
+const EVAL_PROGRESS_ROW_HEIGHT = EVAL_PROGRESS_LABEL_HEIGHT + EVAL_PROGRESS_LABEL_GAP + EVAL_PROGRESS_HEIGHT
+const EVAL_SECTION_GAP = 22
 const EVAL_CARD_TOP = EVAL_CONTENT_TOP + EVAL_PROGRESS_ROW_HEIGHT + EVAL_SECTION_GAP
-/** Card padding: extra room up top for the number badge straddling the corner, and around the image row/question text. */
-const EVAL_CARD_PAD_TOP = 40
-const EVAL_CARD_PAD_X = 32
-const EVAL_CARD_PAD_BOTTOM = 26
-const EVAL_OPTION_WIDTH = 328
-const EVAL_OPTION_HEIGHT = 76
-const EVAL_OPTION_GAP_X = 16
+/** Card padding: extra room up top for the number badge straddling the corner, and around the image column/question text. */
+const EVAL_CARD_PAD_TOP = 44
+const EVAL_CARD_PAD_X = 44
+const EVAL_CARD_PAD_BOTTOM = 34
+/** Gap between the image column and the question/answers column, image-question layout only. */
+const EVAL_COLUMN_GAP = 44
+const EVAL_OPTION_HEIGHT = 82
+const EVAL_OPTION_GAP_X = 22
 const EVAL_OPTION_GAP_Y = 16
+/** A 2-column answer grid caps out at this width per pill so short answers ("Resistor") don't stretch edge to edge on the wide card. */
+const EVAL_GRID_OPTION_MAX_WIDTH = 680
+/** A single-column stack (long, full-sentence options) caps out here for a comfortable line length. */
+const EVAL_STACK_OPTION_MAX_WIDTH = 1040
 /** Options this short (e.g. "Resistor") get the 2-column grid; longer, full-sentence options stack single-column instead. */
 const EVAL_SHORT_OPTION_MAX_LEN = 26
 /** Gap between the "benar/salah" feedback line and the next-question button below it. */
-const EVAL_FEEDBACK_BUTTON_GAP = 96
+const EVAL_FEEDBACK_BUTTON_GAP = 60
 
-// Schematic reference image(s) shown inside the question card.
-const EVAL_IMAGE_MAX_HEIGHT = 168
-const EVAL_IMAGE_PANEL_PAD = 12
-const EVAL_IMAGE_GAP = 12
-const EVAL_IMAGE_TO_TEXT_GAP = 18
+// Schematic/diagram reference image(s) shown beside the question on the left column.
+const EVAL_IMAGE_COL_RATIO = 0.42
+const EVAL_IMAGE_MIN_HEIGHT = 340
+const EVAL_IMAGE_MAX_DISPLAY_HEIGHT = 440
+const EVAL_IMAGE_PANEL_PAD = 18
+const EVAL_IMAGE_STACK_GAP = 14
 
 // Langkah 3 intro dialog card, shown before the countdown/quiz start.
 const EVAL_INTRO_CARD_WIDTH = 640
@@ -387,21 +401,23 @@ export class EvaluationStep {
     this.body.add(content)
     state.content = content
 
-    // Progress: "N / total" label plus a filled bar showing how far through the quiz this question sits.
+    // Progress: "Soal N dari total" label on its own line, then a filled bar
+    // below it showing how far through the quiz this question sits. Wording,
+    // not navigation — there is nothing here to tap.
     const progressLabel = this.scene.add
-      .text(EVAL_CARD_LEFT, EVAL_CONTENT_TOP + EVAL_PROGRESS_ROW_HEIGHT / 2, `${index + 1} / ${total}`, {
+      .text(EVAL_CARD_LEFT, EVAL_CONTENT_TOP, `Soal ${index + 1} dari ${total}`, {
         fontFamily: FONT_HEADING,
         fontStyle: '700',
-        fontSize: '14px',
+        fontSize: '15px',
         color: MUTED_TEXT_COLOR,
         resolution: TEXT_RESOLUTION,
       })
-      .setOrigin(0, 0.5)
+      .setOrigin(0, 0)
     content.add(progressLabel)
 
-    const trackX = EVAL_CARD_LEFT + 38
-    const trackWidth = EVAL_CARD_WIDTH - 38
-    const trackY = EVAL_CONTENT_TOP + (EVAL_PROGRESS_ROW_HEIGHT - EVAL_PROGRESS_HEIGHT) / 2
+    const trackX = EVAL_CARD_LEFT
+    const trackWidth = EVAL_CARD_WIDTH
+    const trackY = EVAL_CONTENT_TOP + EVAL_PROGRESS_LABEL_HEIGHT + EVAL_PROGRESS_LABEL_GAP
     const progressBar = this.scene.add
       .graphics()
       .fillStyle(BADGE_FILL, 0.15)
@@ -411,58 +427,114 @@ export class EvaluationStep {
     content.add(progressBar)
 
     // Question card, with a number badge straddling the top-left corner and a
-    // pair of small dash-dot flourishes. Height isn't fixed any more — the
-    // schematic image row (when the question has one) plus the question text
-    // are measured first, the same way buildOptionPill sizes its own pill.
+    // pair of small dash-dot flourishes. Everything — image column (if any),
+    // question text, and answers — lives inside one measured box; nothing is
+    // fixed-height, so a long question or a tall diagram grows the card
+    // instead of clipping.
     const cardTop = EVAL_CARD_TOP
-    let cursorY = cardTop + EVAL_CARD_PAD_TOP
+    const contentTop = cardTop + EVAL_CARD_PAD_TOP
     const cardBody: Phaser.GameObjects.GameObject[] = []
 
     const images = question.images ?? []
-    if (images.length > 0) {
-      const rowWidth = EVAL_CARD_WIDTH - EVAL_CARD_PAD_X * 2
-      const slotWidth = (rowWidth - EVAL_IMAGE_GAP * (images.length - 1)) / images.length
-      const imageNodes = images.map((texture) =>
-        containFit(
-          this.scene.add.image(0, 0, texture),
-          slotWidth - EVAL_IMAGE_PANEL_PAD * 2,
-          EVAL_IMAGE_MAX_HEIGHT - EVAL_IMAGE_PANEL_PAD * 2,
-        ),
-      )
-      const panelHeight = Math.max(...imageNodes.map((img) => img.displayHeight)) + EVAL_IMAGE_PANEL_PAD * 2
-      const rowLeft = EVAL_CARD_LEFT + EVAL_CARD_PAD_X
+    const hasImage = images.length > 0
 
-      imageNodes.forEach((img, i) => {
-        const slotX = rowLeft + i * (slotWidth + EVAL_IMAGE_GAP) + slotWidth / 2
-        const panel = this.scene.add
-          .graphics()
-          .fillStyle(0xfaf6ea, 1)
-          .fillRoundedRect(slotX - slotWidth / 2, cursorY, slotWidth, panelHeight, 14)
-          .lineStyle(2, BORDER_COLOR, 0.25)
-          .strokeRoundedRect(slotX - slotWidth / 2, cursorY, slotWidth, panelHeight, 14)
-        img.setPosition(slotX, cursorY + panelHeight / 2)
-        cardBody.push(panel, img)
-      })
+    const contentLeft = EVAL_CARD_LEFT + EVAL_CARD_PAD_X
+    const contentWidth = EVAL_CARD_WIDTH - EVAL_CARD_PAD_X * 2
+    const imageColWidth = hasImage ? contentWidth * EVAL_IMAGE_COL_RATIO : 0
+    const rightColLeft = hasImage ? contentLeft + imageColWidth + EVAL_COLUMN_GAP : contentLeft
+    const rightColWidth = hasImage ? contentWidth - imageColWidth - EVAL_COLUMN_GAP : contentWidth
+    const rightColCenterX = rightColLeft + rightColWidth / 2
 
-      cursorY += panelHeight + EVAL_IMAGE_TO_TEXT_GAP
-    }
-
+    // Question text: left-aligned beside a diagram (reads naturally next to
+    // it), centered when it's the only thing up top.
     const questionText = this.scene.add
-      .text(EVAL_CENTER_X, cursorY, question.question, {
+      .text(hasImage ? rightColLeft : rightColCenterX, contentTop, question.question, {
         fontFamily: FONT_HEADING,
         fontStyle: '700',
-        fontSize: '20px',
+        fontSize: hasImage ? '22px' : '27px',
         color: TEXT_COLOR,
-        align: 'center',
-        lineSpacing: 6,
-        wordWrap: { width: EVAL_CARD_WIDTH - EVAL_CARD_PAD_X * 2 },
+        align: hasImage ? 'left' : 'center',
+        lineSpacing: 8,
+        wordWrap: { width: rightColWidth },
         resolution: TEXT_RESOLUTION,
       })
-      .setOrigin(0.5, 0)
+      .setOrigin(hasImage ? 0 : 0.5, 0)
     cardBody.push(questionText)
-    cursorY += questionText.height
 
-    const cardHeight = cursorY + EVAL_CARD_PAD_BOTTOM - cardTop
+    const optionsTop = contentTop + questionText.height + (hasImage ? 22 : 30)
+
+    // Short options ("Resistor") get a 2-column grid; long, full-sentence
+    // options stack single-column with wrapped, auto-height pills instead.
+    const useGrid = question.options.every((opt) => opt.text.length <= EVAL_SHORT_OPTION_MAX_LEN)
+    const pillRefs: (ReturnType<typeof this.buildOptionPill> & { opt: (typeof question.options)[number] })[] = []
+    let optionsBottom: number
+
+    if (useGrid) {
+      const colWidth = hasImage
+        ? (rightColWidth - EVAL_OPTION_GAP_X) / 2
+        : Math.min(EVAL_GRID_OPTION_MAX_WIDTH, (rightColWidth - EVAL_OPTION_GAP_X) / 2)
+      const blockWidth = colWidth * 2 + EVAL_OPTION_GAP_X
+      const blockLeft = hasImage ? rightColLeft : rightColCenterX - blockWidth / 2
+
+      question.options.forEach((opt, i) => {
+        const col = i % 2
+        const row = Math.floor(i / 2)
+        const x = blockLeft + col * (colWidth + EVAL_OPTION_GAP_X) + colWidth / 2
+        const y = optionsTop + row * (EVAL_OPTION_HEIGHT + EVAL_OPTION_GAP_Y) + EVAL_OPTION_HEIGHT / 2
+        const built = this.buildOptionPill(opt, colWidth)
+        built.container.setPosition(x, y)
+        pillRefs.push({ ...built, opt })
+      })
+      const rows = Math.ceil(question.options.length / 2)
+      optionsBottom = optionsTop + rows * (EVAL_OPTION_HEIGHT + EVAL_OPTION_GAP_Y) - EVAL_OPTION_GAP_Y
+    } else {
+      const stackWidth = hasImage ? rightColWidth : Math.min(EVAL_STACK_OPTION_MAX_WIDTH, rightColWidth)
+      const stackCenterX = hasImage ? rightColLeft + stackWidth / 2 : rightColCenterX
+      let optionCursorY = optionsTop
+      question.options.forEach((opt) => {
+        const built = this.buildOptionPill(opt, stackWidth)
+        const y = optionCursorY + built.height / 2
+        built.container.setPosition(stackCenterX, y)
+        pillRefs.push({ ...built, opt })
+        optionCursorY += built.height + EVAL_OPTION_GAP_Y
+      })
+      optionsBottom = optionCursorY - EVAL_OPTION_GAP_Y
+    }
+
+    const rightColHeight = optionsBottom - contentTop
+
+    // Image column: sized to match whatever the question+answers column came
+    // out to (never shorter than EVAL_IMAGE_MIN_HEIGHT), then multiple images
+    // (e.g. a question spanning two work sheets) stack inside it — each one
+    // contain-fit so nothing crops or distorts.
+    let imageColBottom = contentTop
+    if (hasImage) {
+      const panelHeight = Math.max(rightColHeight, EVAL_IMAGE_MIN_HEIGHT)
+      const panel = this.scene.add
+        .graphics()
+        .fillStyle(0xfaf6ea, 1)
+        .fillRoundedRect(contentLeft, contentTop, imageColWidth, panelHeight, 16)
+        .lineStyle(2, BORDER_COLOR, 0.25)
+        .strokeRoundedRect(contentLeft, contentTop, imageColWidth, panelHeight, 16)
+      cardBody.push(panel)
+
+      const slotHeight = (panelHeight - EVAL_IMAGE_PANEL_PAD * 2 - EVAL_IMAGE_STACK_GAP * (images.length - 1)) / images.length
+      images.forEach((texture, i) => {
+        const img = containFit(
+          this.scene.add.image(0, 0, texture),
+          imageColWidth - EVAL_IMAGE_PANEL_PAD * 2,
+          Math.min(slotHeight, EVAL_IMAGE_MAX_DISPLAY_HEIGHT),
+        )
+        const slotTop = contentTop + EVAL_IMAGE_PANEL_PAD + i * (slotHeight + EVAL_IMAGE_STACK_GAP)
+        img.setPosition(contentLeft + imageColWidth / 2, slotTop + slotHeight / 2)
+        cardBody.push(img)
+      })
+
+      imageColBottom = contentTop + panelHeight
+    }
+
+    const cardBottom = Math.max(optionsBottom, imageColBottom) + EVAL_CARD_PAD_BOTTOM
+    const cardHeight = cardBottom - cardTop
 
     const card = this.scene.add
       .graphics()
@@ -496,39 +568,8 @@ export class EvaluationStep {
       .setOrigin(0.5)
     content.add(questionBadgeText)
 
-    const optionsTop = cardTop + cardHeight + EVAL_SECTION_GAP
-
-    // Short options ("Resistor") get the Figma 2-column grid; long, full-sentence
-    // options stack single-column with wrapped, auto-height pills instead.
-    const useGrid = question.options.every((opt) => opt.text.length <= EVAL_SHORT_OPTION_MAX_LEN)
-    const pillRefs: (ReturnType<typeof this.buildOptionPill> & { opt: (typeof question.options)[number] })[] = []
-    let optionsBottom: number
-
-    if (useGrid) {
-      question.options.forEach((opt, i) => {
-        const col = i % 2
-        const row = Math.floor(i / 2)
-        const x = EVAL_CARD_LEFT + col * (EVAL_OPTION_WIDTH + EVAL_OPTION_GAP_X) + EVAL_OPTION_WIDTH / 2
-        const y = optionsTop + row * (EVAL_OPTION_HEIGHT + EVAL_OPTION_GAP_Y) + EVAL_OPTION_HEIGHT / 2
-        const built = this.buildOptionPill(opt, EVAL_OPTION_WIDTH)
-        built.container.setPosition(x, y)
-        content.add(built.container)
-        pillRefs.push({ ...built, opt })
-      })
-      const rows = Math.ceil(question.options.length / 2)
-      optionsBottom = optionsTop + rows * (EVAL_OPTION_HEIGHT + EVAL_OPTION_GAP_Y) - EVAL_OPTION_GAP_Y
-    } else {
-      let optionCursorY = optionsTop
-      question.options.forEach((opt) => {
-        const built = this.buildOptionPill(opt, EVAL_CARD_WIDTH)
-        const y = optionCursorY + built.height / 2
-        built.container.setPosition(EVAL_CENTER_X, y)
-        content.add(built.container)
-        pillRefs.push({ ...built, opt })
-        optionCursorY += built.height + EVAL_OPTION_GAP_Y
-      })
-      optionsBottom = optionCursorY - EVAL_OPTION_GAP_Y
-    }
+    // Added last — on top of the card graphics drawn above, not underneath it.
+    pillRefs.forEach((ref) => content.add(ref.container))
 
     const selectOption = (selected: (typeof question.options)[number]) => {
       if (state.answered) return
@@ -557,7 +598,7 @@ export class EvaluationStep {
         audio.play('quizWrong')
       }
 
-      const feedbackY = optionsBottom + 28
+      const feedbackY = cardBottom + 28
       const feedback = this.scene.add
         .text(
           EVAL_CENTER_X,
@@ -606,17 +647,17 @@ export class EvaluationStep {
 
   /** A rounded option pill, built at local origin (0,0) — callers position it once its final height is known. */
   private buildOptionPill(opt: QuizQuestion['options'][number], width: number) {
-    const paddingX = 20
-    const badgeSize = 40
+    const paddingX = 22
+    const badgeSize = 46
     const badgeCx = -width / 2 + paddingX + badgeSize / 2
-    const textX = badgeCx + badgeSize / 2 + 16
+    const textX = badgeCx + badgeSize / 2 + 18
     const textWidth = width / 2 - textX - paddingX
 
     const text = this.scene.add
       .text(textX, 0, opt.text, {
         fontFamily: FONT_BODY,
         fontStyle: '700',
-        fontSize: '16px',
+        fontSize: '18px',
         color: TEXT_COLOR,
         wordWrap: { width: textWidth },
         lineSpacing: 4,
@@ -636,7 +677,7 @@ export class EvaluationStep {
       .text(badgeCx, 0, opt.key, {
         fontFamily: FONT_HEADING,
         fontStyle: '800',
-        fontSize: '14px',
+        fontSize: '15px',
         color: TEXT_COLOR,
         resolution: TEXT_RESOLUTION,
       })
