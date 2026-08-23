@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { EventBus } from './EventBus'
 import { audio } from './audio/AudioDirector'
-import { DPR, measureStage, stage, STAGE_RESIZE_EVENT } from './stage'
+import { DPR, measureStage, stage, STAGE_RESIZE_EVENT, updateDPR } from './stage'
 import { session } from './state/session'
 import { Boot } from './scenes/Boot'
 import { Splash } from './scenes/Splash'
@@ -40,8 +40,30 @@ const config: Phaser.Types.Core.GameConfig = {
 }
 
 let game: Phaser.Game | null = null
+let containerEl: HTMLElement | null = null
 let syncFrame = 0
 let syncTimer = 0
+
+/**
+ * `#phaser-container`'s CSS (`100dvh`, falling back to `100vh`) can't be
+ * trusted: `100dvh` silently no-ops on any browser that doesn't parse it —
+ * confirmed on the WebView shipped with Android 12 and older — leaving
+ * `100vh` in effect, and Android Chrome's `100vh` has long measured the
+ * *largest* possible viewport (chrome hidden), not the current one. With the
+ * address bar visible that overshoots the real visible height, so Phaser's
+ * CENTER_BOTH canvas ends up letterboxed inside a container taller than the
+ * screen — an empty band up top, and the bottom of the game scrolled out of
+ * view under `overflow: hidden`, with no error to signal it.
+ *
+ * `measureStage` already reads the one number every browser agrees on —
+ * `window.innerWidth`/`innerHeight` — so the container is sized from that
+ * directly instead of trusting any viewport-unit keyword.
+ */
+function applyContainerSize() {
+  if (!containerEl) return
+  containerEl.style.width = `${window.innerWidth}px`
+  containerEl.style.height = `${window.innerHeight}px`
+}
 
 /**
  * A rotation is not one event: mobile browsers fire `orientationchange` and
@@ -52,6 +74,7 @@ let syncTimer = 0
 const ORIENTATION_SETTLE_DELAY = 350
 
 function syncStage() {
+  applyContainerSize()
   session.set({ portrait: window.innerHeight > window.innerWidth })
 
   const next = measureStage()
@@ -65,6 +88,7 @@ function syncStage() {
 
   stage.width = next.width
   stage.height = next.height
+  updateDPR(stage.width, stage.height)
 
   // setGameSize, NOT resize. Under FIT the ScaleManager's `displaySize` is
   // aspect-locked, and `resize()` feeds it through `setSize()`, which re-fits
@@ -125,7 +149,11 @@ function onHomeExitComplete(action: HomeMenuAction) {
 export function StartGame(parent: string | HTMLElement): Phaser.Game {
   if (game) return game
 
+  containerEl = typeof parent === 'string' ? document.getElementById(parent) : parent
+  applyContainerSize()
+
   Object.assign(stage, measureStage())
+  updateDPR(stage.width, stage.height)
   session.set({ portrait: window.innerHeight > window.innerWidth })
 
   game = new Phaser.Game({
@@ -149,4 +177,5 @@ export function StopGame() {
   audio.detach()
   game?.destroy(true)
   game = null
+  containerEl = null
 }

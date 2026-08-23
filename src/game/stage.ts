@@ -16,14 +16,81 @@ export const DESIGN_WIDTH = 1920
 export const DESIGN_HEIGHT = 1080
 
 /**
+ * Ceiling applied on top of whatever the GPU reports, so a desktop or
+ * high-end GPU that advertises 8192/16384 doesn't get asked to fill an
+ * enormous backing store for zero visible benefit — no display shows more
+ * detail than a ~4x supersample of the design resolution.
+ */
+const MAX_TEXTURE_SIZE_CEILING = 8192
+
+/**
+ * Conservative floor used when the probe itself is unavailable (no WebGL at
+ * all). 4096 is the de facto minimum every WebGL-capable device — including
+ * the low-end/older Android hardware this app targets — has supported for
+ * years, well above the WebGL spec's own minimum of 1024.
+ */
+const MAX_TEXTURE_SIZE_FALLBACK = 4096
+
+/**
+ * Exceeding the GPU's real MAX_TEXTURE_SIZE doesn't throw or resize
+ * gracefully — Chromium/ANGLE silently clamps the canvas's actual drawing
+ * buffer to the limit while Phaser keeps rendering and hit-testing against
+ * the *requested* (larger) size. The result: content is drawn into a
+ * narrower buffer than the camera projects for, then CSS-stretched back out
+ * to full width — a squashed, off-centre picture — and every pointer event
+ * is still tested against the untouched, too-large logical coordinates, so
+ * taps land on the wrong thing or nothing at all. This is exactly what made
+ * the app unusable on low-end/older Android GPUs, which commonly cap out at
+ * 2048–4096: a probe context here is what lets `DPR` stay a true supersample
+ * factor instead of silently exceeding what the hardware can actually back.
+ */
+function detectMaxTextureSize(): number {
+  try {
+    const probe = document.createElement('canvas')
+    const gl = (probe.getContext('webgl2') ||
+      probe.getContext('webgl') ||
+      probe.getContext('experimental-webgl')) as WebGLRenderingContext | null
+    if (!gl) return MAX_TEXTURE_SIZE_FALLBACK
+
+    const size = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+
+    return size > 0 ? Math.min(size, MAX_TEXTURE_SIZE_CEILING) : MAX_TEXTURE_SIZE_FALLBACK
+  } catch {
+    return MAX_TEXTURE_SIZE_FALLBACK
+  }
+}
+
+const MAX_TEXTURE_SIZE = detectMaxTextureSize()
+
+/**
  * Phaser 4's ScaleManager has no `resolution`/DPI option — the canvas backing
  * store is always exactly `width`x`height`, then CSS-stretched to fill the
  * viewport (via ENVELOP), which upscales and blurs on HiDPI screens. We
  * supersample instead: render to a canvas `DPR` times bigger than the design
  * resolution, and every scene compensates with `cameras.main.setZoom(DPR)` so
  * game-object coordinates stay in the 1920x1080 design space.
+ *
+ * A `let`, not a `const`: the safe factor depends on the *stage*, which
+ * grows with the viewport's aspect ratio (see `measureStage` below) and can
+ * change after a rotation. `updateDPR` recomputes it against the current
+ * stage; every importer sees the update immediately since ES module
+ * bindings are live references, not snapshots taken at import time.
  */
-export const DPR = Math.min(window.devicePixelRatio || 1, 2)
+export let DPR = Math.min(window.devicePixelRatio || 1, 2)
+
+/**
+ * Recomputes `DPR` so `stageWidth * DPR` / `stageHeight * DPR` never exceeds
+ * the GPU's real texture ceiling — shrinking the supersample factor first
+ * (never below 1x) rather than leaving the canvas to be silently clamped.
+ * Call after every `stage` change, before that stage size is used to build
+ * or resize the canvas.
+ */
+export function updateDPR(stageWidth: number, stageHeight: number) {
+  const uncapped = Math.min(window.devicePixelRatio || 1, 2)
+  const maxDim = Math.max(stageWidth, stageHeight)
+  DPR = Math.min(uncapped, Math.max(1, MAX_TEXTURE_SIZE / maxDim))
+}
 
 /**
  * The stage is the design-space area actually covered by the canvas. FIT alone

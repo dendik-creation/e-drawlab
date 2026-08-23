@@ -295,6 +295,22 @@ export function attachOrbitDrag(
   let dragging = false
   let lastX = 0
   let lastY = 0
+  // `onChange` repaints the whole 3D box scene (six shaded faces, two dashed
+  // wire boxes, the gizmo) — real work, not a couple of Graphics fills. A raw
+  // touchmove stream fires far faster than the display can show it, so
+  // calling this on every event ran that repaint several times more often
+  // than any frame could render, which is what read as stutter while
+  // orbiting. `camera.yaw`/`pitch` still update immediately on every move —
+  // only the (expensive) repaint is collapsed to once per rendered frame.
+  let repaintRafId = 0
+
+  const scheduleRepaint = () => {
+    if (repaintRafId) return
+    repaintRafId = requestAnimationFrame(() => {
+      repaintRafId = 0
+      onChange()
+    })
+  }
 
   zone.setInteractive({ useHandCursor: true })
   zone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -314,7 +330,7 @@ export function attachOrbitDrag(
 
     camera.yaw += dx * DRAG_SENSITIVITY
     camera.pitch = Phaser.Math.Clamp(camera.pitch - dy * DRAG_SENSITIVITY, -PITCH_LIMIT, PITCH_LIMIT)
-    onChange()
+    scheduleRepaint()
   }
   scene.input.on('pointermove', onPointerMove)
 
@@ -330,6 +346,10 @@ export function attachOrbitDrag(
       scene.input.off('pointerup', onPointerUp)
       scene.input.off('pointerupoutside', onPointerUp)
       dragging = false
+      if (repaintRafId) {
+        cancelAnimationFrame(repaintRafId)
+        repaintRafId = 0
+      }
     },
   }
 }

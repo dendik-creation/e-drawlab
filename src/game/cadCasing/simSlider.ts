@@ -64,6 +64,19 @@ export class SimSlider {
   private onPointerMove?: (pointer: Phaser.Input.Pointer) => void
   private onPointerUp?: () => void
 
+  /**
+   * `onChange` drives a full 3D-viewport repaint (`simulasiStep.ts`'s
+   * `refresh()`/`paintViewport()`) — a raw touchmove stream fires far faster
+   * than the display can show it, so on mobile that repaint ran several
+   * times more often than any frame could actually render, reading as frame
+   * drops while dragging. The thumb/track redraw below stays unthrottled
+   * (two small Graphics, effectively free); only the expensive downstream
+   * notify is collapsed to once per rendered frame. See `jalurPcb/simSlider.ts`,
+   * which has the same fix for the same reason.
+   */
+  private pendingNotifyValue: number | null = null
+  private notifyRafId = 0
+
   constructor(ctx: UiContext, config: SimSliderConfig) {
     this.ctx = ctx
     this.config = config
@@ -160,6 +173,12 @@ export class SimSlider {
     this.onPointerMove = undefined
     this.onPointerUp = undefined
     this.dragging = false
+
+    if (this.notifyRafId) {
+      cancelAnimationFrame(this.notifyRafId)
+      this.notifyRafId = 0
+    }
+    this.pendingNotifyValue = null
   }
 
   // ---------------------------------------------------------------------
@@ -177,7 +196,7 @@ export class SimSlider {
     this.redraw()
     if (notify) {
       this.tick()
-      this.config.onChange(next)
+      this.scheduleNotify(next)
     }
   }
 
@@ -187,6 +206,18 @@ export class SimSlider {
     if (now - this.lastTickAt < TICK_INTERVAL_MS) return
     this.lastTickAt = now
     audio.play('sliderTick')
+  }
+
+  /** Collapses a burst of same-frame `setValue` calls into one `onChange` on the next paint — see the field comment above. */
+  private scheduleNotify(value: number) {
+    this.pendingNotifyValue = value
+    if (this.notifyRafId) return
+    this.notifyRafId = requestAnimationFrame(() => {
+      this.notifyRafId = 0
+      const pending = this.pendingNotifyValue
+      this.pendingNotifyValue = null
+      if (pending !== null) this.config.onChange(pending)
+    })
   }
 
   private redraw() {
