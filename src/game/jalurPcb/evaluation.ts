@@ -49,4 +49,7 @@ export const JALUR_PCB_EVALUATION: EvaluationConfig = {
   // Badge lights up on finishing the quiz (results card), not on merely
   // reaching it — Home reads this flag via `isMenuCompleted('jalur-pcb')`.
   onComplete: () => markMenuCompleted('jalur-pcb'),
+  // Jalur PCB has just the one evaluation — always the journey's last step,
+  // so it keeps the original "Coba Lagi" (restart in place) + "Ke Beranda" pair.
+  isFinalStep: true,
 }

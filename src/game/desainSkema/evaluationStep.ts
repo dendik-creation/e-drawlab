@@ -134,9 +134,10 @@ export class EvaluationStep {
     this.onExitHome = onExitHome
   }
 
-  /** A fresh attempt's question order, plus per-question option order where the bank asks for it. */
+  /** A fresh attempt's question order (trimmed to `sampleSize` if set), plus per-question option order where the bank asks for it. */
   private drawQuestions(): QuizQuestion[] {
-    const questions = shuffleQuestions(this.config.questions)
+    const shuffled = shuffleQuestions(this.config.questions)
+    const questions = this.config.sampleSize ? shuffled.slice(0, this.config.sampleSize) : shuffled
     return this.config.shuffleOptionOrder ? questions.map(shuffleOptions) : questions
   }
 
@@ -158,7 +159,11 @@ export class EvaluationStep {
       countdownTimers: [],
     }
 
-    this.renderEvaluationIntro()
+    // Non-final steps repeat the same quiz format the learner already saw on
+    // Langkah 2.1's evaluation — only that first one shows the instructions
+    // dialog (see EvaluationConfig.showIntro).
+    if (this.config.showIntro === false) this.startCountdown()
+    else this.renderEvaluationIntro()
   }
 
   /** Same reasoning as WorkbenchStep.teardown(): any pending countdown step and in-flight quiz-content tweens must stop before their targets are destroyed. */
@@ -753,18 +758,37 @@ export class EvaluationStep {
     content.add(messageText)
 
     const buttonY = cardTop + RESULT_CARD_HEIGHT + 60
-    const retryBtn = buildActionButton(this.ctx, 'Coba Lagi', EVAL_CENTER_X - 132, buttonY, 240, 'primary', () => {
-      if (this.navigating) return
-      this.navigating = true
-      audio.play('click')
-      fadeUpOut(this.scene, content, 180, 20, () => this.resetEvaluation())
-    })
-    content.add(retryBtn)
-    state.contentInteractives.push(retryBtn)
 
-    const homeBtn = buildActionButton(this.ctx, 'Ke Beranda', EVAL_CENTER_X + 132, buttonY, 240, 'secondary', () => this.onExitHome())
-    content.add(homeBtn)
-    state.contentInteractives.push(homeBtn)
+    if (this.config.isFinalStep) {
+      const retryBtn = buildActionButton(this.ctx, 'Coba Lagi', EVAL_CENTER_X - 132, buttonY, 240, 'primary', () => {
+        if (this.navigating) return
+        this.navigating = true
+        audio.play('click')
+        fadeUpOut(this.scene, content, 180, 20, () => {
+          if (this.config.onRetry) this.config.onRetry()
+          else this.resetEvaluation()
+        })
+      })
+      content.add(retryBtn)
+      state.contentInteractives.push(retryBtn)
+
+      const homeBtn = buildActionButton(this.ctx, 'Ke Beranda', EVAL_CENTER_X + 132, buttonY, 240, 'secondary', () => this.onExitHome())
+      content.add(homeBtn)
+      state.contentInteractives.push(homeBtn)
+    } else {
+      // Mid-journey step: nowhere to "retry" or "go home" to here — the next
+      // work sheet/evaluation is what's waiting, so there's just the one button.
+      // No audio.play('click') here — onContinue is DesainSkema's
+      // goToNextStep, which already plays its own click on every step
+      // transition; playing it here too was the double click-sound bug.
+      const continueBtn = buildActionButton(this.ctx, 'Lanjutkan →', EVAL_CENTER_X, buttonY, 260, 'primary', () => {
+        if (this.navigating) return
+        this.navigating = true
+        fadeUpOut(this.scene, content, 180, 20, () => this.config.onContinue?.())
+      })
+      content.add(continueBtn)
+      state.contentInteractives.push(continueBtn)
+    }
 
     fadeDownIn(this.scene, content, 0, 20, 240)
   }

@@ -7,7 +7,7 @@ import { SETTINGS_CHANGED_EVENT } from '../state/settings'
 import { session } from '../state/session'
 import { markMenuCompleted } from '../state/progress'
 import { CIRCUIT_LEVELS } from '../desainSkema/circuits'
-import { DESAIN_SKEMA_EVALUATION } from '../desainSkema/evaluation'
+import { buildDesainSkemaStepEvaluation } from '../desainSkema/evaluation'
 import { EXIT_FADE_DURATION, type InteractiveTarget, type UiContext } from '../desainSkema/uiKit'
 import { DesainSkemaHeader } from '../desainSkema/header'
 import { MateriStep, materiEntranceDuration } from '../desainSkema/materiStep'
@@ -104,14 +104,28 @@ export function releaseDesainSkemaTextures(scene: Phaser.Scene) {
   })
 }
 
-export type JourneyStep = 'materi' | 'level-1' | 'level-2' | 'level-3' | 'evaluasi'
+export type JourneyStep = 'materi' | 'level-1' | 'eval-1' | 'level-2' | 'eval-2' | 'level-3' | 'eval-3'
 
-const STEP_ORDER: JourneyStep[] = ['materi', 'level-1', 'level-2', 'level-3', 'evaluasi']
+type WorkbenchJourneyStep = 'level-1' | 'level-2' | 'level-3'
+type EvalJourneyStep = 'eval-1' | 'eval-2' | 'eval-3'
 
-const LEVEL_NUMBER: Record<Exclude<JourneyStep, 'materi' | 'evaluasi'>, 1 | 2 | 3> = {
+const STEP_ORDER: JourneyStep[] = ['materi', 'level-1', 'eval-1', 'level-2', 'eval-2', 'level-3', 'eval-3']
+
+const LEVEL_NUMBER: Record<WorkbenchJourneyStep, 1 | 2 | 3> = {
   'level-1': 1,
   'level-2': 2,
   'level-3': 3,
+}
+
+/** Each Langkah 2.N work sheet is followed immediately by its own 3-question evaluation, filtered to that sheet's topic. */
+const EVAL_LEVEL_NUMBER: Record<EvalJourneyStep, 1 | 2 | 3> = {
+  'eval-1': 1,
+  'eval-2': 2,
+  'eval-3': 3,
+}
+
+function isEvalStep(step: JourneyStep): step is EvalJourneyStep {
+  return step === 'eval-1' || step === 'eval-2' || step === 'eval-3'
 }
 
 /**
@@ -218,7 +232,8 @@ export class DesainSkema extends BaseStageScene {
 
   private badgeLabel() {
     if (this.step === 'materi') return 'Langkah 1 - Materi'
-    if (this.step === 'evaluasi') return 'Langkah 3 - Evaluasi'
+    if (this.step === 'eval-3') return 'Langkah 3 - Evaluasi'
+    if (this.step === 'eval-1' || this.step === 'eval-2') return 'Langkah 2 - Evaluasi'
     return 'Langkah 2 - Simulasi CAD'
   }
 
@@ -298,7 +313,7 @@ export class DesainSkema extends BaseStageScene {
         this.header.render(this.badgeLabel(), step !== 'materi', false)
 
         if (step === 'materi') this.renderMateri(false)
-        else if (step === 'evaluasi') this.renderEvaluasi()
+        else if (isEvalStep(step)) this.renderEvaluasi(step)
         else this.renderLevel(step)
 
         this.body.setAlpha(0)
@@ -334,7 +349,7 @@ export class DesainSkema extends BaseStageScene {
   // Langkah 2.1-2.3 — Simulasi CAD work sheets
   // ---------------------------------------------------------------------
 
-  private renderLevel(step: Exclude<JourneyStep, 'materi' | 'evaluasi'>) {
+  private renderLevel(step: WorkbenchJourneyStep) {
     const levelNumber = LEVEL_NUMBER[step]
     const level = CIRCUIT_LEVELS[levelNumber - 1]
     const hasNextStep = STEP_ORDER.indexOf(step) < STEP_ORDER.length - 1
@@ -351,15 +366,35 @@ export class DesainSkema extends BaseStageScene {
   }
 
   // ---------------------------------------------------------------------
-  // Langkah 3 — Evaluasi (quiz)
+  // Langkah 2.1-2.3's own evaluations, plus eval-3 doubling as Langkah 3
   // ---------------------------------------------------------------------
 
-  private renderEvaluasi() {
-    // Reaching evaluasi (not necessarily finishing it) is the "sudah dipelajari"
-    // bar for Home's menu-corner badge — see state/progress.ts.
-    markMenuCompleted('desain-skema')
+  /**
+   * Each work sheet is immediately followed by a 3-question evaluation drawn
+   * from that sheet's own topic (`questionsForLevel`) — not the old single
+   * 9-question quiz at the very end. eval-3 is still the journey's actual
+   * last step, so it keeps the "Coba Lagi"/"Ke Beranda" results pair; eval-1
+   * and eval-2 get a single "Lanjutkan" button that walks straight into the
+   * next work sheet.
+   */
+  private renderEvaluasi(step: EvalJourneyStep) {
+    const isFinalStep = step === 'eval-3'
 
-    this.evaluationStep = new EvaluationStep(this.uiContext, DESAIN_SKEMA_EVALUATION, () => this.goHome())
+    // Reaching the final evaluasi (not necessarily finishing it) is the
+    // "sudah dipelajari" bar for Home's menu-corner badge — see state/progress.ts.
+    if (isFinalStep) markMenuCompleted('desain-skema')
+
+    const config = buildDesainSkemaStepEvaluation({
+      level: EVAL_LEVEL_NUMBER[step],
+      isFinalStep,
+      showIntro: step === 'eval-1',
+      onContinue: isFinalStep ? undefined : () => this.goToNextStep(),
+      // "Coba Lagi" on the final evaluation goes back to the first work sheet
+      // to redo it, rather than just reshuffling this same quiz in place.
+      onRetry: isFinalStep ? () => this.transitionTo('level-1') : undefined,
+    })
+
+    this.evaluationStep = new EvaluationStep(this.uiContext, config, () => this.goHome())
     this.evaluationStep.render(this.body)
   }
 }
