@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="IsometrikIcon" clip-path="url(#clip0_0_8)">
+<path id="Vector" d="M6.5 0.928572L12.0714 4.17857L6.5 7.42857L0.928572 4.17857L6.5 0.928572Z" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M6.5 7.42857V12.0714" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M0.928572 4.17857V8.82143" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M12.0714 4.17857V8.82143" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_5" d="M0.928572 8.82143L6.5 12.0714" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_6" d="M12.0714 8.82143L6.5 12.0714" stroke="#66878E" stroke-width="1.57857" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_0_8">
+<rect width="13" height="13" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,34 @@
+{
+  "questions": [
+    {
+      "id": "Q-CAD-01",
+      "question": "Seorang siswa merancang PCB modul sensor dengan ukuran panjang 60mm dan lebar 40mm. Agar PCB dapat masuk ke dalam casing dengan mudah tanpa terhimpit, siswa memberikan celah aman (clearance) sebesar 1,5mm di setiap sisinya. Berapakah ukuran Panjang Dalam (Lin) dan Lebar Dalam (Win) dari casing tersebut?",
+      "options": [
+        { "key": "A", "text": "61,5mm & 41,5mm" },
+        { "key": "B", "text": "63,0mm & 43,0mm" },
+        { "key": "C", "text": "66,0mm & 46,0mm" }
+      ],
+      "correct": "B"
+    },
+    {
+      "id": "Q-CAD-02",
+      "question": "Sebuah PCB berketebalan 1,6mm memiliki komponen tertinggi berupa Kapasitor Elektrolit setinggi 18mm. Di dasar casing dipasang pilar dudukan (standoff) setinggi 5mm agar jalur bawah PCB tidak menyentuh dasar casing. Siswa memberikan celah bebas atas sebesar 2,4mm. Berapakah tinggi minimal bagian dalam casing (Hin) agar tutup casing dapat terpasang dengan sempurna?",
+      "options": [
+        { "key": "A", "text": "22,0mm" },
+        { "key": "B", "text": "25,0mm" },
+        { "key": "C", "text": "27,0mm" }
+      ],
+      "correct": "C"
+    },
+    {
+      "id": "Q-CAD-03",
+      "question": "Hasil perhitungan ruang dalam sebuah casing PCB diperoleh ukuran 80mm x 50mm x 30mm (Lin x Win x Hin). Jika casing tersebut akan dibuat menggunakan software 3D dengan ketebalan dinding (wall thickness) sebesar 2mm di seluruh sisinya. Berapakah ukuran luar total (Lout x Wout x Hout) dari objek casing 3D tersebut?",
+      "options": [
+        { "key": "A", "text": "82mm x 52mm x 32mm" },
+        { "key": "B", "text": "84mm x 54mm x 34mm" },
+        { "key": "C", "text": "88mm x 58mm x 38mm" }
+      ],
+      "correct": "B"
+    }
+  ]
+}
