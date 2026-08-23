@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { EventBus } from './EventBus'
 import { audio } from './audio/AudioDirector'
 import { DPR, measureStage, stage, STAGE_RESIZE_EVENT, updateDPR } from './stage'
-import { session } from './state/session'
+import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from './state/session'
 import { Boot } from './scenes/Boot'
 import { Splash } from './scenes/Splash'
 import { Home, type HomeMenuAction } from './scenes/Home'
@@ -75,7 +75,20 @@ const ORIENTATION_SETTLE_DELAY = 350
 
 function syncStage() {
   applyContainerSize()
-  session.set({ portrait: window.innerHeight > window.innerWidth })
+
+  const portrait = window.innerHeight > window.innerWidth
+  session.set({ portrait })
+
+  // Home and every scene after it are landscape-only (ADR-009): the stage
+  // must never actually reshape to portrait, even while OrientationGuard's
+  // overlay is covering it — a merely-hidden portrait stage would still be
+  // portrait underneath. Freeze at the last landscape geometry instead.
+  // Splash is the one scene reachable while portrait (it gates Masuk Lab
+  // itself), so there's always a landscape stage already in place to freeze.
+  if (portrait && !LANDSCAPE_ONLY_EXEMPT_SCENES.has(session.get().currentScene)) {
+    game?.scale.refresh()
+    return
+  }
 
   const next = measureStage()
 

@@ -29,6 +29,16 @@ export interface SessionState {
 
 export const SESSION_CHANGED_EVENT = 'session-changed'
 
+/**
+ * Scenes allowed to keep reflowing their stage/canvas to a portrait aspect.
+ * Everything else (Home onward) is landscape-only: `main.ts`'s `syncStage`
+ * refuses to reshape the stage to portrait while the active scene isn't in
+ * this set, and `OrientationGuard` covers the frozen canvas with a rotate
+ * prompt — so a scene outside this set can never actually become portrait,
+ * not even underneath the overlay.
+ */
+export const LANDSCAPE_ONLY_EXEMPT_SCENES = new Set(['Boot', 'Splash'])
+
 export const session = createStore<SessionState>(
   {
     currentScene: 'Boot',
