@@ -1,12 +1,12 @@
 import Phaser from 'phaser'
 import { EventBus } from '../EventBus'
-import { applyStageCamera, stage, STAGE_RESIZE_EVENT } from '../stage'
+import { applyStageCamera, stage, stageBounds, STAGE_RESIZE_EVENT } from '../stage'
 import { coverFit } from '../coverFit'
 import { queueHomeTextures } from './Home'
 import { BaseStageScene } from './BaseStageScene'
 import { audio } from '../audio/AudioDirector'
 import { session, SESSION_CHANGED_EVENT } from '../state/session'
-import btnMasukLabUrl from '../../../assets/images/01_menu_buttons/btn_masuklab.webp'
+import touchToHomeUrl from '../../../assets/images/05_backgrounds/touch_to_home.webp'
 
 const TEXT_COLOR = '#0c6179'
 const BORDER_COLOR = 0x2b909f
@@ -30,43 +30,41 @@ const ENTRANCE_DURATION = 320
 const ENTRANCE_STAGGER = 120
 const ENTRANCE_EASE = 'Back.easeOut'
 
-// The button's own visible pill (matches the Figma frame's button rectangle).
-// Pulse-ring geometry hugs this box, not the asset's full canvas below.
-const BUTTON_WIDTH = 458
-const BUTTON_HEIGHT = 126
-// btn_masuklab.webp bakes its drop shadow into the canvas, so the exported
-// asset is larger than the pill itself — display it at its native size
-// (coverFit is a no-op here since the aspect ratio already matches) rather
-// than cropping the shadow off to fit BUTTON_WIDTH/HEIGHT.
-const BUTTON_ASSET_WIDTH = 488
-const BUTTON_ASSET_HEIGHT = 156
+// touch_to_home.webp's native canvas; displayed larger so the tap affordance
+// reads at splash scale.
+const TOUCH_ICON_NATIVE_WIDTH = 115
+const TOUCH_ICON_NATIVE_HEIGHT = 160
+const TOUCH_ICON_SCALE = 1.5
+const TOUCH_ICON_WIDTH = TOUCH_ICON_NATIVE_WIDTH * TOUCH_ICON_SCALE
+const TOUCH_ICON_HEIGHT = TOUCH_ICON_NATIVE_HEIGHT * TOUCH_ICON_SCALE
 
-// Idle affordance: three rings that burst out of the button's outline and fade,
-// a port of the CSS `box-shadow` pulse (three shadows, spreads 10/20/30 at
-// alphas .7/.5/.3, all reaching alpha 0 by the halfway keyframe). Spreads are
-// scaled to this button's design-space size, keeping the CSS ratio of roughly
-// 6.5% of the button's width per ring. Runs on a loop rather than on hover —
-// the splash button is the only thing to press, so it advertises itself.
-const PULSE_DURATION = 2000
-const PULSE_RADIUS = 24
-const PULSE_STROKE_WIDTH = 4
-const PULSE_RINGS = [
-  { spread: 24, alpha: 0.7 },
-  { spread: 48, alpha: 0.5 },
-  { spread: 72, alpha: 0.3 },
-]
-/**
- * The visible burst is the CSS animation's first half; its second half only
- * keeps expanding shadows that are already fully transparent, which reads as
- * the rest between pulses.
- */
-const PULSE_BURST_FRACTION = 0.5
+// Idle affordance: the icon breathes in place. Runs on a loop rather than on
+// hover — the whole screen is the hitbox, so there is no single spot to hover.
+const TOUCH_PULSE_SCALE = 1.08
+const TOUCH_PULSE_DURATION = 700
 
-const HOVER_SCALE = 1.05
-const HOVER_DURATION = 150
-const PRESS_SCALE = 0.92
+const PRESS_SCALE = 0.9
 const PRESS_DOWN_DURATION = 90
 const PRESS_UP_DURATION = 180
+
+// Small hint pill under the touch icon, spelling out the tap affordance for
+// anyone who doesn't read the icon alone.
+const HINT_LABEL = 'Ketuk dimana saja untuk melanjutkan'
+const HINT_GAP_BELOW_ICON = 18
+const HINT_BOX_WIDTH = 480
+const HINT_BOX_HEIGHT = 48
+const HINT_BOX_RADIUS = 16
+const HINT_FONT_SIZE = '20px'
+const HINT_Y = TOUCH_ICON_HEIGHT / 2 + HINT_GAP_BELOW_ICON + HINT_BOX_HEIGHT / 2
+
+/**
+ * Footer bar: drawn as a scene rectangle rather than baked into splash_bg.webp,
+ * so it can be re-laid-out against `stageBounds()` on every resize and always
+ * span the true viewport edge-to-edge, flush against the bottom, in both
+ * windowed and fullscreen. Sized for one line of the small footer text.
+ */
+const FOOTER_BAR_COLOR = 0x0c6179
+const FOOTER_BAR_HEIGHT = 60
 
 // Rotate prompt. Occupies the same slot as the Masuk Lab button, because the
 // two are mutually exclusive: the product is landscape-first (ADR-009), and a
@@ -119,6 +117,9 @@ export class Splash extends BaseStageScene {
   private activeGate: 'button' | 'rotate' | null = null
   private pulseTween?: Phaser.Tweens.Tween
   private phoneTween?: Phaser.Tweens.Tween
+  private touchZone?: Phaser.GameObjects.Zone
+  private footer?: Phaser.GameObjects.Text
+  private footerBar!: Phaser.GameObjects.Graphics
 
   constructor() {
     super('Splash')
@@ -131,6 +132,10 @@ export class Splash extends BaseStageScene {
     // Full-bleed gradient behind everything else; already resident from
     // Boot's preload, so it paints on the very first frame with no pop-in.
     this.background = coverFit(this.add.image(960, 540, 'splash-bg'), stage.width, stage.height)
+
+    // Drawn, not baked into splash_bg.webp — see FOOTER_BAR_HEIGHT's comment.
+    this.footerBar = this.add.graphics()
+    this.layoutFooterBar()
 
     const logo = coverFit(this.add.image(960, 390.5, 'main-logo'), 790, 263)
     this.prepareBubbleGroup([logo])
@@ -163,6 +168,9 @@ export class Splash extends BaseStageScene {
     this.onBusEvent(STAGE_RESIZE_EVENT, () => {
       applyStageCamera(this)
       coverFit(this.background, stage.width, stage.height)
+      this.touchZone?.setSize(stage.width, stage.height)
+      this.layoutFooterBar()
+      this.positionFooter()
     })
     this.onBusEvent(SESSION_CHANGED_EVENT, () => this.applyOrientationGate(BUBBLE_IN_DELAY))
 
@@ -233,7 +241,7 @@ export class Splash extends BaseStageScene {
 
     this.load.once('complete', () => this.bubbleToReadyState())
 
-    this.load.image('btn-masuklab', btnMasukLabUrl)
+    this.load.image('touch-to-home', touchToHomeUrl)
     queueHomeTextures(this)
     // The loops are the heavy half of the audio budget, so they ride the
     // progress bar rather than stalling the first interactive frame.
@@ -267,34 +275,39 @@ export class Splash extends BaseStageScene {
       onComplete: () => bubbleOutTargets.forEach((target) => target.destroy()),
     })
 
-    // Sits behind the button; drawn every frame by playPulseLoop() once the button is in.
-    const pulse = this.add.graphics({ x: 960, y: 770.5 })
+    const touchIcon = coverFit(this.add.image(0, 0, 'touch-to-home'), TOUCH_ICON_WIDTH, TOUCH_ICON_HEIGHT)
 
-    const button = coverFit(this.add.image(960, 770.5, 'btn-masuklab'), BUTTON_ASSET_WIDTH, BUTTON_ASSET_HEIGHT)
-      .setInteractive({ useHandCursor: true })
+    const baseScaleX = touchIcon.scaleX
+    const baseScaleY = touchIcon.scaleY
 
-    const baseScaleX = button.scaleX
-    const baseScaleY = button.scaleY
-    button.setScale(baseScaleX * 0.6, baseScaleY * 0.6).setAlpha(0).setVisible(false)
-    button.disableInteractive()
-
-    const setButtonScale = (multiplier: number, duration: number, ease: string) => {
-      this.tweens.killTweensOf(button)
-      this.tweens.add({
-        targets: button,
-        scaleX: baseScaleX * multiplier,
-        scaleY: baseScaleY * multiplier,
-        duration,
-        ease,
+    const hintBox = this.add
+      .graphics({ x: 0, y: HINT_Y })
+      .fillStyle(0xffffff, 1)
+      .fillRoundedRect(-HINT_BOX_WIDTH / 2, -HINT_BOX_HEIGHT / 2, HINT_BOX_WIDTH, HINT_BOX_HEIGHT, HINT_BOX_RADIUS)
+      .lineStyle(2, BORDER_COLOR, 1)
+      .strokeRoundedRect(-HINT_BOX_WIDTH / 2, -HINT_BOX_HEIGHT / 2, HINT_BOX_WIDTH, HINT_BOX_HEIGHT, HINT_BOX_RADIUS)
+    const hintLabel = this.add
+      .text(0, HINT_Y, HINT_LABEL, {
+        fontFamily: FONT_BODY,
+        fontStyle: '500',
+        fontSize: HINT_FONT_SIZE,
+        color: TEXT_COLOR,
+        resolution: TEXT_RESOLUTION,
       })
-    }
+      .setOrigin(0.5)
 
-    button.on('pointerover', () => {
-      audio.play('hover')
-      setButtonScale(HOVER_SCALE, HOVER_DURATION, 'Sine.easeOut')
-    })
-    button.on('pointerout', () => setButtonScale(1, HOVER_DURATION, 'Sine.easeOut'))
-    button.on('pointerdown', () => {
+    // The icon (plus its hint pill) bubbles in/out as one unit, anchored at
+    // the same spot the icon used to sit at on its own.
+    const buttonGroup = this.add.container(GATE_X, GATE_Y, [touchIcon, hintBox, hintLabel]).setVisible(false)
+
+    // The icon is only the affordance hint — the actual hitbox is the full
+    // screen, so a tap anywhere on the splash enters the lab.
+    const touchZone = this.add.zone(0, 0, stage.width, stage.height).setOrigin(0)
+    touchZone.setInteractive({ useHandCursor: true })
+    touchZone.disableInteractive()
+    this.touchZone = touchZone
+
+    touchZone.on('pointerdown', () => {
       if (this.entering) return
       this.entering = true
 
@@ -307,54 +320,68 @@ export class Splash extends BaseStageScene {
       audio.setProfile('menu')
 
       EventBus.emit('masuk-lab')
-      button.disableInteractive()
-      this.tweens.killTweensOf(button)
+      touchZone.disableInteractive()
+      this.pulseTween?.remove()
+      this.pulseTween = undefined
+      this.tweens.killTweensOf(touchIcon)
       this.tweens.add({
-        targets: button,
+        targets: touchIcon,
         scaleX: baseScaleX * PRESS_SCALE,
         scaleY: baseScaleY * PRESS_SCALE,
         duration: PRESS_DOWN_DURATION,
         ease: 'Quad.easeOut',
         onComplete: () => {
-          setButtonScale(HOVER_SCALE, PRESS_UP_DURATION, 'Back.easeOut')
+          this.tweens.add({
+            targets: touchIcon,
+            scaleX: baseScaleX,
+            scaleY: baseScaleY,
+            duration: PRESS_UP_DURATION,
+            ease: 'Back.easeOut',
+          })
           this.time.delayedCall(PRESS_UP_DURATION, () => this.scene.start('Home'))
         },
       })
     })
 
+    // Sits inside footerBar, so it's white on that dark fill rather than
+    // TEXT_COLOR (which was tuned for the cream backdrop). Its y is set by
+    // positionFooter() rather than a fixed constant — see FOOTER_BAR_HEIGHT's
+    // comment.
     const footer = this.add
       .text(
         960,
-        1016.5,
+        0,
         'Untuk Siswa Kelas X SMK Program Keahlian Teknik Elektronika',
         {
           fontFamily: FONT_BODY,
           fontStyle: '500',
           fontSize: '24px',
-          color: TEXT_COLOR,
+          color: '#ffffff',
           resolution: TEXT_RESOLUTION,
         },
       )
       .setOrigin(0.5)
       .setScale(0.6)
       .setAlpha(0)
+    this.footer = footer
+    this.positionFooter()
 
     const rotatePrompt = this.buildRotatePrompt()
 
     this.gates = {
       button: {
-        target: button,
-        baseScaleX,
-        baseScaleY,
+        target: buttonGroup,
+        baseScaleX: 1,
+        baseScaleY: 1,
         onShown: () => {
-          button.setInteractive({ useHandCursor: true })
-          this.pulseTween = this.playPulseLoop(pulse)
+          touchZone.setInteractive({ useHandCursor: true })
+          this.pulseTween = this.playTouchPulseLoop(touchIcon, baseScaleX, baseScaleY)
         },
         onHidden: () => {
-          button.disableInteractive()
+          touchZone.disableInteractive()
           this.pulseTween?.remove()
           this.pulseTween = undefined
-          pulse.clear()
+          touchIcon.setScale(baseScaleX, baseScaleY)
         },
       },
       rotate: {
@@ -386,8 +413,8 @@ export class Splash extends BaseStageScene {
 
   /**
    * Swaps the call-to-action for whichever gate the current orientation calls
-   * for. In portrait the Masuk Lab button is never merely hidden — it is left
-   * without input, so a stray tap on its old position cannot enter the lab.
+   * for. In portrait the tap-to-enter zone is never merely hidden — it is left
+   * without input, so a stray tap cannot enter the lab.
    */
   private applyOrientationGate(delay: number) {
     if (!this.gates) return
@@ -419,6 +446,20 @@ export class Splash extends BaseStageScene {
       ease: 'Back.easeOut',
       onComplete: gate.onShown,
     })
+  }
+
+  /** Redraws the footer bar flush against the live stage bounds — see FOOTER_BAR_HEIGHT's comment. */
+  private layoutFooterBar() {
+    const bounds = stageBounds()
+    this.footerBar
+      .clear()
+      .fillStyle(FOOTER_BAR_COLOR, 1)
+      .fillRect(bounds.left, bounds.bottom - FOOTER_BAR_HEIGHT, bounds.right - bounds.left, FOOTER_BAR_HEIGHT)
+  }
+
+  /** Keeps the footer text centred inside the footer bar. */
+  private positionFooter() {
+    this.footer?.setY(stageBounds().bottom - FOOTER_BAR_HEIGHT / 2)
   }
 
   private hideGate(gate: Gate) {
@@ -526,36 +567,15 @@ export class Splash extends BaseStageScene {
     screen.orientation?.lock?.('landscape').catch(() => {})
   }
 
-  private playPulseLoop(pulse: Phaser.GameObjects.Graphics) {
-    return this.tweens.addCounter({
-      from: 0,
-      to: 1,
-      duration: PULSE_DURATION,
+  private playTouchPulseLoop(icon: Phaser.GameObjects.Image, baseScaleX: number, baseScaleY: number) {
+    return this.tweens.add({
+      targets: icon,
+      scaleX: baseScaleX * TOUCH_PULSE_SCALE,
+      scaleY: baseScaleY * TOUCH_PULSE_SCALE,
+      duration: TOUCH_PULSE_DURATION,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
       repeat: -1,
-      ease: 'Linear',
-      onUpdate: (tween) => this.drawPulse(pulse, tween.getValue() ?? 0),
-    })
-  }
-
-  /**
-   * One frame of the pulse: every ring starts on the button's own outline and
-   * grows to its own spread while fading out, so the three separate as they
-   * travel — the same read as the stacked CSS box-shadows.
-   */
-  private drawPulse(pulse: Phaser.GameObjects.Graphics, t: number) {
-    pulse.clear()
-    if (t >= PULSE_BURST_FRACTION) return
-
-    const progress = t / PULSE_BURST_FRACTION
-
-    PULSE_RINGS.forEach(({ spread, alpha }) => {
-      const grown = spread * progress
-      const width = BUTTON_WIDTH + grown * 2
-      const height = BUTTON_HEIGHT + grown * 2
-
-      pulse
-        .lineStyle(PULSE_STROKE_WIDTH, BORDER_COLOR, alpha * (1 - progress))
-        .strokeRoundedRect(-width / 2, -height / 2, width, height, PULSE_RADIUS + grown)
     })
   }
 }
