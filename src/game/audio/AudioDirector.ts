@@ -10,7 +10,7 @@ import {
   SFX,
   resolveAudioUrls,
 } from './manifest'
-import type { AudioLayer, AudioProfileKey, SfxKey } from './manifest'
+import type { AudioLayer, AudioProfileKey, MusicKey, SfxKey } from './manifest'
 
 /** `game.sound.add()` is typed as BaseSound, which has no volume. The concrete backends do. */
 type ManagedSound =
@@ -121,6 +121,56 @@ class AudioDirector {
     }
 
     game.sound.play(key, { ...config, volume: (config.volume ?? 1) * settings.get().sfxVolume * this.muteFactor() })
+  }
+
+  /**
+   * Fires a one-shot voice line and reports back its length in milliseconds,
+   * for a caller that needs to choreograph something else (a lip-sync loop,
+   * ducking the music) against it — `play()`'s fire-and-forget shape has no
+   * way to report that. `onComplete` always fires, even when the file hasn't
+   * been produced yet (0ms), so a caller's cleanup doesn't need its own
+   * missing-asset branch.
+   */
+  playVoiceLine(key: SfxKey, onComplete?: () => void): number {
+    const game = this.game
+    if (!game || game.sound.locked || !game.cache.audio.exists(key)) {
+      if (game && !game.cache.audio.exists(key)) this.warnMissing(key, SFX[key].file)
+      onComplete?.()
+      return 0
+    }
+
+    const sound = game.sound.add(key, {
+      volume: settings.get().sfxVolume * this.muteFactor(),
+    }) as ManagedSound
+
+    sound.once(Phaser.Sound.Events.COMPLETE, () => {
+      this.release(sound)
+      onComplete?.()
+    })
+    sound.play()
+
+    return sound.duration * 1000
+  }
+
+  /**
+   * Temporarily scales the current profile's music beneath its authored
+   * volume — for a voice line that needs the BGM out of its way rather than
+   * a scene switch's full crossfade. `restoreMusic()` re-reads the profile's
+   * authored volume rather than dividing back out, so it stays correct even
+   * if settings changed while ducked.
+   */
+  duckMusic(factor: number, duration = DUCK_DURATION) {
+    if (this.music) this.fadeTo(this.music, this.musicTargetVolume() * factor, duration, false)
+  }
+
+  restoreMusic(duration = DUCK_DURATION) {
+    if (this.music) this.fadeTo(this.music, this.musicTargetVolume(), duration, false)
+  }
+
+  private musicTargetVolume(): number {
+    const target = AUDIO_PROFILES[this.profile] as { music?: { key: MusicKey; volume: number } }
+    if (!target.music) return 0
+    return target.music.volume * settings.get().musicVolume * this.muteFactor()
   }
 
   /**

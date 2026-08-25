@@ -120,6 +120,12 @@ export class Splash extends BaseStageScene {
   private touchZone?: Phaser.GameObjects.Zone
   private footer?: Phaser.GameObjects.Text
   private footerBar!: Phaser.GameObjects.Graphics
+  /**
+   * Bound once so it's the same reference for add/removeEventListener — see
+   * the button gate's onShown/onHidden for why this exists at all instead of
+   * just calling enterFullscreen() from the Phaser pointerdown handler below.
+   */
+  private nativeTapHandler = () => this.enterFullscreen()
 
   constructor() {
     super('Splash')
@@ -164,6 +170,12 @@ export class Splash extends BaseStageScene {
 
   protected onCreate() {
     session.set({ currentScene: 'Splash' })
+
+    // Belt-and-suspenders: onHidden already removes this when the button gate
+    // is swapped out, but a scene shutdown while it's still active (leaving
+    // Splash without ever hiding the gate) wouldn't otherwise run that path —
+    // and this listener lives on the canvas, which outlives the scene.
+    this.onCleanup(() => this.game.canvas.removeEventListener('pointerdown', this.nativeTapHandler))
 
     this.onBusEvent(STAGE_RESIZE_EVENT, () => {
       applyStageCamera(this)
@@ -311,10 +323,14 @@ export class Splash extends BaseStageScene {
       if (this.entering) return
       this.entering = true
 
-      // Both of these need the press's user-gesture context, so they happen
-      // before anything async: fullscreen is only grantable from a gesture,
-      // and this press is the browser's autoplay unlock point, which is where
-      // the score and room tone are allowed to start.
+      // enterFullscreen() already fired from the raw native listener (see the
+      // button gate's onShown) — Phaser's own pointerdown is dispatched a
+      // frame after the real DOM event through its internal queue, which is
+      // consistently too late for Chrome to still treat as gesture-triggered.
+      // This call stays as a harmless fallback (enterFullscreen() no-ops once
+      // already fullscreen). audio.play *does* need to run here — this press
+      // is still the browser's autoplay unlock point, where the score and
+      // room tone are allowed to start.
       this.enterFullscreen()
       audio.play('click')
       audio.setProfile('menu')
@@ -375,10 +391,15 @@ export class Splash extends BaseStageScene {
         baseScaleY: 1,
         onShown: () => {
           touchZone.setInteractive({ useHandCursor: true })
+          // Fires requestFullscreen() straight off the native DOM event,
+          // before Phaser's own pointerdown (queued, dispatched a frame
+          // later) has any chance to lose the user-gesture context.
+          this.game.canvas.addEventListener('pointerdown', this.nativeTapHandler, { once: true })
           this.pulseTween = this.playTouchPulseLoop(touchIcon, baseScaleX, baseScaleY)
         },
         onHidden: () => {
           touchZone.disableInteractive()
+          this.game.canvas.removeEventListener('pointerdown', this.nativeTapHandler)
           this.pulseTween?.remove()
           this.pulseTween = undefined
           touchIcon.setScale(baseScaleX, baseScaleY)

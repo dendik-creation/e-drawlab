@@ -141,8 +141,9 @@ const REDUCED_MOTION_DURATION = 220
 /** Random talk-flap cadence for the mouth cycle — irregular on purpose so it doesn't read as a metronome. */
 const MOUTH_CYCLE_MIN_DELAY = 90
 const MOUTH_CYCLE_MAX_DELAY = 200
-/** Swaps fired once the entrance lands, before settling on mascot-mouth-1 for good. */
-const MOUTH_CYCLE_REPEATS = 3
+
+/** BGM fraction while the greeting voice line is playing — audible underneath, never fighting it. */
+const DUBBING_DUCK_FACTOR = 0.2
 
 /**
  * Home menu. Every element bubbles in staggered on load, and bubbles back out
@@ -336,28 +337,43 @@ export class Home extends BaseStageScene {
       duration: reduced ? REDUCED_MOTION_DURATION : MASCOT_ENTER_DURATION,
       delay: reduced ? 0 : MASCOT_ENTER_DELAY,
       ease: reduced ? 'Sine.easeInOut' : MASCOT_ENTER_EASE,
-      onComplete: () => this.startMouthCycle(),
+      onComplete: () => this.playGreetingDubbing(),
     })
   }
 
   /**
-   * Random mouth-flap that simulates the mascot speaking its greeting bubble.
-   * Fires MOUTH_CYCLE_REPEATS times once the entrance slide has landed, then
-   * settles for good on mascot-mouth-1 — a perpetual flap read as broken/
-   * looping rather than a one-off greeting once the "Halo!" bubble has had
-   * its moment.
+   * Fires the greeting voice line once the entrance has landed, ducking the
+   * BGM out of its way for exactly its length and lip-syncing the mouth-flap
+   * cycle to that same length — both self-correct if the audio file is ever
+   * re-recorded at a different length, since neither hardcodes a duration.
+   * Silent no-op (0ms) if the file hasn't been produced or audio is still
+   * locked — startMouthCycle() then just settles the mouth on frame 1.
    */
-  private startMouthCycle() {
-    if (settings.get().reducedMotion) return
+  private playGreetingDubbing() {
+    const durationMs = audio.playVoiceLine('dubbingGreeting', () => audio.restoreMusic())
+    if (durationMs > 0) audio.duckMusic(DUBBING_DUCK_FACTOR)
+    this.startMouthCycle(durationMs)
+  }
 
+  /**
+   * Random mouth-flap that simulates the mascot speaking. Runs for
+   * `durationMs` (the greeting voice line's own length) once the entrance
+   * slide has landed, then settles for good on mascot-mouth-1 — a perpetual
+   * flap reads as broken/looping rather than speech once the line is over.
+   */
+  private startMouthCycle(durationMs: number) {
+    if (settings.get().reducedMotion || durationMs <= 0) {
+      this.setMouthFrame(0)
+      return
+    }
+
+    const endAt = this.time.now + durationMs
     let lastIndex = 0
-    let remaining = MOUTH_CYCLE_REPEATS
     const tick = () => {
-      if (remaining <= 0) {
+      if (this.time.now >= endAt) {
         this.setMouthFrame(0)
         return
       }
-      remaining -= 1
 
       let index = Phaser.Math.Between(0, MOUTH_FRAMES.length - 1)
       if (MOUTH_FRAMES.length > 1 && index === lastIndex) {

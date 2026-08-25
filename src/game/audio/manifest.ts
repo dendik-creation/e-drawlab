@@ -88,6 +88,8 @@ export const SFX = {
   statusSafe: { file: 'status-safe.ogg', layer: 'sfx' },
   statusWarning: { file: 'status-warning.ogg', layer: 'sfx' },
   statusDanger: { file: 'status-danger.ogg', layer: 'sfx' },
+  /** Home's mascot greeting voice line — lip-synced to the mouth-flap cycle, ducks the BGM for its duration. */
+  dubbingGreeting: { file: 'dubbing_greeting.ogg', layer: 'sfx' },
 } as const satisfies Record<string, AudioAsset>
 
 /** Looping score. One track per context, cross-faded or ducked between scenes. */
