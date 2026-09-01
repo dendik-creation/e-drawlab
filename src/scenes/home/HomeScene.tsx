@@ -5,7 +5,7 @@ import { isMenuCompleted } from '../../game/state/progress'
 import { settings, toggleMute } from '../../game/state/settings'
 import { DesignFrame } from '../../ui/stage/StageRoot'
 import { useStageBounds } from '../../ui/stage/useStage'
-import { BubbleItem, BubbleStage, bubbleDuration } from '../../ui/motion'
+import { BubbleItem, BubbleStage } from '../../ui/motion'
 import Pressable from '../../ui/Pressable'
 import MascotMouth from './MascotMouth'
 import type { SceneProps } from '../../app/scenes'
@@ -201,6 +201,3 @@ export default function HomeScene({ navigate }: SceneProps) {
     </>
   )
 }
-
-/** How long Home takes to leave — used by the router's own timing in tests. */
-export const homeExitDuration = () => bubbleDuration(BUBBLE_COUNT, true)

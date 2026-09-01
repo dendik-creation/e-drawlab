@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { settings } from '../game/state/settings'
+import { bubbleDuration, IN_DURATION, IN_STAGGER, OUT_DURATION, OUT_STAGGER, REDUCED_DURATION } from './bubbleTiming'
 import './motion.css'
 
 /**
@@ -11,12 +12,6 @@ import './motion.css'
  * runs on the compositor and the main thread does nothing per frame — the
  * old version drove one tween per element through the game loop.
  */
-
-const IN_STAGGER = 150
-const OUT_STAGGER = 110
-const IN_DURATION = 720
-const OUT_DURATION = 520
-const REDUCED_DURATION = 220
 
 interface BubbleContextValue {
   exiting: boolean
@@ -48,15 +43,6 @@ export interface BubbleStageProps {
   /** One item's animation length, ms. */
   duration?: number
   children: ReactNode
-}
-
-/** Total time the whole sequence takes, in ms. */
-export function bubbleDuration(count: number, exiting: boolean, stagger?: number, duration?: number) {
-  if (settings.get().reducedMotion) return REDUCED_DURATION
-  return (
-    (duration ?? (exiting ? OUT_DURATION : IN_DURATION)) +
-    (stagger ?? (exiting ? OUT_STAGGER : IN_STAGGER)) * Math.max(count - 1, 0)
-  )
 }
 
 export function BubbleStage({
@@ -156,12 +142,3 @@ export function BubbleItem({ index, box, origin = 'topleft', scaleFrom = 0.62, c
   )
 }
 
-/**
- * Scene-level exit latch. `begin()` starts the outro; the scene reads
- * `exiting` to lock input, and `onDone` fires once.
- */
-export function useExitLatch(onDone: () => void) {
-  const [exiting, setExiting] = useState(false)
-  const begin = useCallback(() => setExiting(true), [])
-  return { exiting, begin, onDone }
-}
