@@ -83,7 +83,13 @@ All seven landed. The decision and its consequences are recorded in
 bun run build
 node scripts/perf/capture.mjs <label>   # .screenshots/<label>/*.png
 node scripts/perf/bench.mjs   <label>   # .screenshots/bench-<label>.json
+node scripts/perf/smoke.mjs             # behaviour: audio, navigation, gates
 ```
+
+`smoke.mjs` checks what a screenshot cannot see. It exists because the
+migration broke exactly one such thing silently: the audio director used to be
+started by the Phaser bootstrap, and deleting that left the app mute with every
+screen still looking perfect and every frame rate still green.
 
 Both drive the app in **design coordinates** (`toViewport` converts), so the
 same script works against either renderer. `?probe=1` exposes the current

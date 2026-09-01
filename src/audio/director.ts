@@ -37,11 +37,11 @@ class AudioDirector {
   private settingsBound = false
 
   /**
-   * Starts the audio system. Takes no game object any more — the parameter is
-   * kept so Phaser scenes still calling `audio.attach(game)` during the
-   * migration compile unchanged.
+   * Starts the audio system. Called once at app startup (`main.tsx`) — the
+   * director outlives every scene, which is the whole point of ducking
+   * between them rather than restarting.
    */
-  attach(_game?: unknown) {
+  start() {
     if (this.attached) return
     this.attached = true
 
@@ -62,7 +62,7 @@ class AudioDirector {
     void this.preload(['sfx'])
   }
 
-  detach() {
+  stop() {
     this.attached = false
     this.music?.stop()
     this.ambience?.stop()
@@ -94,15 +94,6 @@ class AudioDirector {
         onProgress?.(done / keys.length)
       }),
     )
-  }
-
-  /**
-   * Transitional shim for Phaser scenes that queued audio onto a scene
-   * loader. The loader is gone; this just kicks off the same preload and
-   * returns immediately. Delete with the last Phaser scene.
-   */
-  queue(_scene: unknown, layers: AudioLayer[] = ['sfx', 'music', 'ambience']) {
-    void this.preload(layers.filter((layer) => layer === 'sfx'))
   }
 
   /** Switches scene context. Re-declaring the current profile is a no-op. */
