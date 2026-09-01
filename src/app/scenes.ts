@@ -4,6 +4,7 @@ import HomeScene from '../scenes/home/HomeScene'
 import EvaluasiAkhirScene from '../scenes/evaluation/EvaluasiAkhirScene'
 import JalurPcbScene from '../scenes/jalurPcb/JalurPcbScene'
 import CadCasingScene from '../scenes/cadCasing/CadCasingScene'
+import DesainSkemaScene from '../scenes/desainSkema/DesainSkemaScene'
 
 /** Every screen in the app, by the key both renderers agree on. */
 export type SceneKey = 'Splash' | 'Home' | 'DesainSkema' | 'JalurPcb' | 'CadCasing' | 'EvaluasiAkhir'
@@ -28,6 +29,7 @@ export const REACT_SCENES: Partial<Record<SceneKey, ComponentType<SceneProps>>> 
   EvaluasiAkhir: EvaluasiAkhirScene,
   JalurPcb: JalurPcbScene,
   CadCasing: CadCasingScene,
+  DesainSkema: DesainSkemaScene,
 }
 
 export function isReactScene(scene: SceneKey) {

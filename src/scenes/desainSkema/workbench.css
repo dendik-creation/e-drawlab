@@ -1,0 +1,378 @@
+/**
+ * Desain Skema — Langkah 2.x work sheet. Panel and sheet geometry are the
+ * Figma frame's; the drag feel matches the canvas build (snap radius, buzz on
+ * a wrong slot, spring back home).
+ */
+
+.wb-root {
+  position: absolute;
+  inset: 0;
+}
+
+.wb-panel {
+  position: absolute;
+  border-radius: 20px;
+  background: var(--c-card);
+  border: 3px solid var(--c-badge-fill);
+  box-sizing: border-box;
+}
+
+.wb-panel-title {
+  position: absolute;
+  left: 32px;
+  top: 27px;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--c-text);
+}
+
+.wb-panel-title.is-sheet {
+  left: 24px;
+}
+
+.wb-panel-subtitle {
+  position: absolute;
+  left: 32px;
+  top: 76px;
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--c-text);
+  white-space: pre-line;
+}
+
+/* ---------------------------------------------------------- the sheet */
+
+.wb-sheet {
+  position: absolute;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 2px solid var(--c-card-edge);
+  box-sizing: border-box;
+  /* The 40px dot grid, as a repeating background rather than ~500 drawn
+     circles. */
+  background-image: radial-gradient(circle at 40px 40px, #d8dfe0 1.5px, transparent 1.5px);
+  background-size: 40px 40px;
+}
+
+.wb-sheet-caption {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+/** The schematic layer spans the whole design frame so slot coordinates stay absolute. */
+.wb-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------- drop ghosts */
+
+.wb-ghost rect {
+  fill: rgba(43, 144, 159, 0.07);
+  stroke: #2b909f;
+  stroke-opacity: 0.45;
+  stroke-width: 2;
+  transition:
+    fill 120ms linear,
+    stroke 120ms linear;
+  animation: wb-ghost-pulse 1800ms var(--ease-in-out) infinite;
+}
+
+.wb-ghost.is-active rect {
+  fill: rgba(31, 174, 107, 0.16);
+  stroke: #1fae6b;
+  stroke-opacity: 0.95;
+  stroke-width: 3;
+  animation: none;
+}
+
+@keyframes wb-ghost-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.wb-ghost-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--c-text-muted);
+}
+
+/* ---------------------------------------------------------- the wires */
+
+.wb-wire {
+  stroke-width: 4;
+}
+
+/**
+ * The trail-line reveal: the stroke is dashed to its own length and the
+ * offset animates to zero, which draws it on. One declarative animation per
+ * wire, where the canvas version ran a counter tween redrawing the line's
+ * vertices every frame.
+ */
+.wb-wire.is-drawing {
+  stroke-dasharray: calc(var(--wire-length) * 1px);
+  stroke-dashoffset: calc(var(--wire-length) * 1px);
+  animation: wb-wire-draw 260ms var(--ease-out) forwards;
+}
+
+@keyframes wb-wire-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.wb-wire-flow {
+  stroke-width: 4;
+  stroke-opacity: 0.85;
+}
+
+.wb-slot-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--c-text-muted);
+}
+
+.wb-slot-value {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  fill: var(--c-text-muted);
+}
+
+/* --------------------------------------------------------- the etiket */
+
+.wb-etiket-ghost {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border-radius: 12px;
+  background: rgba(43, 144, 159, 0.07);
+  border: 2px solid rgba(43, 144, 159, 0.45);
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--c-text-muted);
+  animation: wb-ghost-pulse 1800ms var(--ease-in-out) infinite;
+}
+
+.wb-etiket-ghost img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  opacity: 0.55;
+}
+
+.wb-etiket-ghost.is-active {
+  background: rgba(31, 174, 107, 0.16);
+  border-color: #1fae6b;
+  border-width: 3px;
+  animation: none;
+}
+
+.wb-etiket {
+  position: absolute;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1.5px solid rgba(43, 144, 159, 0.9);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.wb-etiket-head {
+  display: flex;
+  height: 46%;
+  background: #e6efee;
+  border-bottom: 1px solid rgba(43, 144, 159, 0.5);
+  font-size: 12px;
+}
+
+.wb-etiket-head span {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding-left: 12px;
+}
+
+.wb-etiket-head span + span {
+  border-left: 1px solid rgba(43, 144, 159, 0.5);
+}
+
+.wb-etiket-body {
+  display: flex;
+  align-items: center;
+  height: 54%;
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+/* -------------------------------------------------------- the palette */
+
+.wb-palette {
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(43, 144, 159, 0.5) transparent;
+}
+
+.wb-row {
+  position: absolute;
+  left: 50%;
+  margin-left: -160px;
+  width: 320px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #5c9f96;
+  box-sizing: border-box;
+  cursor: grab;
+  touch-action: none;
+  /* Rows slide up as the list closes around a placed component; a dragged row
+     must not animate its own follow-the-finger transform. */
+  transition: top 220ms var(--ease-in-out);
+}
+
+/** The row a drag started from: kept in the layout so the list does not jump, but invisible while its copy travels. */
+.wb-row.is-source {
+  visibility: hidden;
+}
+
+/**
+ * The travelling card. Positioned against the design frame (not the palette),
+ * centred on its own drag point, and above everything.
+ */
+.wb-drag-card {
+  left: 0;
+  top: 0;
+  margin-left: 0;
+  translate: -50% -50%;
+  z-index: 20;
+  cursor: grabbing;
+  transition: none;
+  pointer-events: none;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.18);
+}
+
+.wb-row.is-rejected {
+  animation: wb-row-reject 60ms linear 4 alternate;
+}
+
+@keyframes wb-row-reject {
+  from {
+    rotate: -6deg;
+  }
+  to {
+    rotate: 6deg;
+  }
+}
+
+.wb-row-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  rotate: 15deg;
+  pointer-events: none;
+}
+
+.wb-row-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--c-text);
+  pointer-events: none;
+}
+
+/** Grip dots at the row's right edge. */
+.wb-row-handle {
+  margin-left: auto;
+  margin-right: 20px;
+  fill: rgba(102, 135, 142, 0.55);
+  pointer-events: none;
+}
+
+.wb-row-etiket .wb-row-label {
+  font-family: var(--font-heading);
+  font-weight: 800;
+}
+
+.wb-row-etiket.is-locked {
+  cursor: default;
+}
+
+/** The padlock scrim replaces the row's own contents rather than sitting beside them. */
+.wb-row-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 10px;
+  background: rgba(251, 240, 220, 0.92);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+.wb-row-lock-glyph {
+  display: block;
+}
+
+.wb-row-etiket.is-unlocked {
+  animation: wb-unlock-pop 300ms var(--ease-out);
+}
+
+@keyframes wb-unlock-pop {
+  50% {
+    scale: 1.08;
+  }
+}
+
+.wb-footer {
+  position: absolute;
+  left: 1630px;
+  top: 972px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-ghost rect,
+  .wb-etiket-ghost,
+  .wb-row-etiket.is-unlocked {
+    animation: none;
+  }
+}
