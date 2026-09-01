@@ -74,6 +74,10 @@ try {
   await openJourney(page, 'cadCasing')
   await clickNext(page, 1800)
   await record('cad-casing orbit 3D', page, sweep(page, CASING_ORBIT))
+  await backToHome(page)
+
+  await openJourney(page, 'evaluasiAkhir')
+  await record('evaluasi-akhir (idle)', page, () => page.waitForTimeout(SAMPLE_MS))
 
   await context.close()
 

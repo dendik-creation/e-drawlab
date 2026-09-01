@@ -1,0 +1,15 @@
+/**
+ * Shared journey-scene shell: the page background and the flat exit fade
+ * every journey leaves on (`uiKit.EXIT_FADE_DURATION`).
+ */
+.scene-body {
+  position: absolute;
+  inset: 0;
+  background: var(--c-page);
+  transition: opacity var(--t-exit-fade) var(--ease-in-out);
+}
+
+.scene-body.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+}

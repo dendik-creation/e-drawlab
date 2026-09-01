@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import SplashScene from '../scenes/splash/SplashScene'
 import HomeScene from '../scenes/home/HomeScene'
+import EvaluasiAkhirScene from '../scenes/evaluation/EvaluasiAkhirScene'
 
 /** Every screen in the app, by the key both renderers agree on. */
 export type SceneKey = 'Splash' | 'Home' | 'DesainSkema' | 'JalurPcb' | 'CadCasing' | 'EvaluasiAkhir'
@@ -22,6 +23,7 @@ export interface SceneProps {
 export const REACT_SCENES: Partial<Record<SceneKey, ComponentType<SceneProps>>> = {
   Splash: SplashScene,
   Home: HomeScene,
+  EvaluasiAkhir: EvaluasiAkhirScene,
 }
 
 export function isReactScene(scene: SceneKey) {

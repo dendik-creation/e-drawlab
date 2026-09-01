@@ -1,0 +1,101 @@
+/**
+ * Journey chrome. Coordinates are the design-space numbers from the Figma
+ * frames; the `single` variant carries Evaluasi Akhir's own placement.
+ *
+ * Each part fades down into place once, staggered — the same entrance
+ * `uiKit.fadeDownIn` played, now as one CSS animation per element rather than
+ * four tweens the game loop had to step.
+ */
+
+.jh-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.jh-root > * {
+  pointer-events: auto;
+}
+
+.jh-title {
+  position: absolute;
+  left: 960px;
+  top: 58px;
+  translate: -50% -50%;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 44px;
+  color: var(--c-text);
+  white-space: nowrap;
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+}
+
+.jh-root[data-variant='single'] .jh-title {
+  top: 44px;
+  translate: -50% 0;
+}
+
+.jh-badge {
+  position: absolute;
+  left: 960px;
+  top: 116px;
+  translate: -50% -50%;
+  padding: 14px 32px;
+  border-radius: 999px;
+  background: var(--c-badge-fill);
+  color: var(--c-badge-text);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  white-space: nowrap;
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+  animation-delay: 60ms;
+}
+
+.jh-root[data-variant='single'] .jh-badge {
+  top: 130px;
+}
+
+.jh-nav {
+  position: absolute;
+  top: 64px;
+  translate: -50% -50%;
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+  animation-delay: 120ms;
+}
+
+.jh-root[data-variant='single'] .jh-nav {
+  top: 78px;
+}
+
+.jh-home {
+  left: 68px;
+}
+
+.jh-root[data-variant='single'] .jh-home {
+  left: 77px;
+}
+
+.jh-back {
+  left: 194px;
+}
+
+.jh-nav img {
+  display: block;
+}
+
+.jh-bgm {
+  position: absolute;
+  left: 1810.5px;
+  top: 65px;
+  translate: -50% -50%;
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+  animation-delay: 180ms;
+}
+
+.jh-bgm img {
+  display: block;
+  object-fit: contain;
+}
