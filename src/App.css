@@ -1,19 +1,4 @@
-/* Phaser's own autoCenter (CENTER_BOTH) positions the canvas via inline
-   margins — centering it here too would double up and skew it off-center
-   on aspect ratios where FIT letterboxes asymmetrically. */
-#phaser-container {
-  width: 100vw;
-  height: 100vh;
-  width: 100dvw;
-  height: 100dvh;
-  overflow: hidden;
-  background: #faf3e7;
-  /* Without this, Android Chromium runs every touch through gesture
-     arbitration first (is this a tap, or the start of a scroll/pinch?) before
-     committing it as a pointer event — any hint of finger movement during
-     the tap, near-universal on a real touchscreen, and it loses the coin
-     flip and gets reclassified as a scroll, silently dropping the tap with
-     no JS error. The canvas has nothing to scroll or zoom, so there is no
-     gesture to arbitrate for. */
-  touch-action: none;
-}
+/**
+ * The stage owns its own full-viewport box (see ui/stage/stage.css); nothing
+ * else needs page-level layout.
+ */

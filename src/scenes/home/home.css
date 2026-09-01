@@ -1,0 +1,118 @@
+/**
+ * Home. The Figma frame already runs edge to edge in 1920x1080 (the logo sits
+ * 1px from the top, the mascot fills nearly the full height), so the
+ * foreground stays at its authored size, centred, while `home_bg` bleeds
+ * behind it to fill whatever the viewport's aspect ratio adds.
+ */
+
+.home-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-menu-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/**
+ * "Sudah dipelajari" badge, straddling the button's top-right corner. Inside
+ * the button rather than beside it, so it inherits the hover and press
+ * transforms for free.
+ */
+.home-menu-badge {
+  position: absolute;
+  object-fit: contain;
+}
+
+.home-logo {
+  width: 100%;
+  height: 100%;
+}
+
+/**
+ * Idle rock: the logo tips to one side, then swings across to the other and
+ * back, forever. Kept to a few degrees — the logo is wide, so its corners
+ * travel a long way per degree of rotation.
+ */
+.home-logo.is-idle {
+  animation: edl-logo-rock 6200ms var(--ease-in-out) 1000ms infinite;
+}
+
+@keyframes edl-logo-rock {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+/**
+ * The mascot gets its own entrance — a slide in from off-screen right —
+ * rather than the shared bubble, and leaves the same way rather than
+ * shrinking with the rest.
+ */
+.home-mascot {
+  position: absolute;
+  animation: edl-mascot-in var(--ease-out) both;
+}
+
+.home-mascot.is-leaving {
+  animation-name: edl-mascot-out;
+  animation-timing-function: var(--ease-in-out);
+}
+
+@keyframes edl-mascot-in {
+  from {
+    opacity: 0;
+    transform: translateX(900px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes edl-mascot-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(900px);
+  }
+}
+
+.home-mascot-bubble,
+.home-mouth {
+  position: absolute;
+  object-fit: contain;
+}
+
+/**
+ * A zero-size anchor at the toggle's centre point. The toggle centres itself
+ * on it (its bubble item carries the -50% translate), so the two BGM artworks
+ * — which are not the same pixel size — stay centred on the same spot.
+ */
+.home-hud {
+  position: absolute;
+}
+
+.home-bgm img {
+  display: block;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-logo.is-idle {
+    animation: none;
+  }
+}

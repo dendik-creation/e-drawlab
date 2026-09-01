@@ -1,0 +1,230 @@
+/**
+ * CAD Casing — Langkah 2 (simulator). The panel geometry is the Figma frame's;
+ * the camera pills are deliberately more generous than Figma's own 34px-tall,
+ * text-width-fitted ones, which were easy to miss-click.
+ */
+
+.cs-panel {
+  position: absolute;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #e8ecf0;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.cs-left {
+  padding: 28px;
+}
+
+.cs-left-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cs-left-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.cs-left-title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--c-text);
+}
+
+/* ------------------------------------------------------ PCB size card */
+
+.cs-pcb-card {
+  margin-top: 16px;
+  padding: 14px 16px 8px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.cs-pcb-badge {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.cs-pcb-badge-title {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  color: #16a34a;
+}
+
+.cs-pcb-badge-value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  color: #22c55e;
+}
+
+.cs-lower {
+  margin-top: 14px;
+}
+
+/*
+ * Eight stacked rows have to land on the Figma frame's own pitch — 46px inside
+ * the PCB card, 50px below it — or the last one overflows the panel. The row
+ * is the 20px header plus the track's grab margin, so those are what get
+ * tightened here rather than the shared control.
+ */
+.cs-slider .sim-slider-bounds {
+  display: none;
+}
+
+.cs-slider .sim-slider-track {
+  margin-top: 6px;
+  border-top-width: 6px;
+  border-bottom-width: 6px;
+}
+
+.cs-slider + .cs-slider {
+  margin-top: 6px;
+}
+
+.cs-pcb-card .cs-slider + .cs-slider {
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------- right panel */
+
+.cs-camera-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.cs-camera-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 136px;
+  height: 46px;
+  border-radius: 23px;
+  border: 1px solid #66878e;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--c-text);
+  transition:
+    background-color var(--t-hover) linear,
+    color var(--t-hover) linear;
+}
+
+.cs-camera-pill img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.cs-camera-pill[data-active] {
+  background: #0c6179;
+  border-color: #0c6179;
+  color: var(--c-badge-text);
+}
+
+.cs-camera-pill[data-active] img {
+  filter: brightness(0) invert(1);
+}
+
+.cs-camera-pill.is-reset {
+  width: 168px;
+}
+
+.cs-caption {
+  position: absolute;
+  left: 20px;
+  margin: 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  color: #9babbf;
+}
+
+.cs-viewport {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  background: var(--c-page);
+  border-top: 1px solid #e8ecf0;
+  border-bottom: 1px solid #e8ecf0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.cs-viewport:active {
+  cursor: grabbing;
+}
+
+.cs-viewport-svg {
+  display: block;
+}
+
+.cs-dimension-chip {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  z-index: 1;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #0c6179;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--c-badge-text);
+}
+
+.cs-legend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+}
+
+.cs-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.cs-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.cs-legend-swatch[data-dashed] {
+  background: none;
+  border: 1.5px dashed;
+}
+
+.cs-footer {
+  position: absolute;
+  left: 1630px;
+  top: 972px;
+}

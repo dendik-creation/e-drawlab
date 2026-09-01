@@ -1,0 +1,82 @@
+/**
+ * The DOM stage: a 1920x1080 design frame, centred and CSS-scaled to the
+ * viewport, inside a stage box that covers whatever extra width or height the
+ * viewport's aspect ratio adds.
+ *
+ * Everything a scene draws is positioned in design pixels inside
+ * `.edl-design-frame`; anything that must hug a true viewport edge (a footer
+ * bar, a corner HUD) positions against `.edl-stage` instead.
+ */
+
+.edl-stage-viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--c-page);
+  /* The canvas build set this on its container for the same reason: Android
+     Chromium otherwise runs every touch through gesture arbitration first
+     (tap, or the start of a scroll?), and any finger movement during a tap —
+     near-universal on a real touchscreen — silently drops it. Scrollable
+     regions inside a scene re-enable it locally. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.edl-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--edl-stage-w) * 1px);
+  height: calc(var(--edl-stage-h) * 1px);
+  transform: translate(-50%, -50%) scale(var(--edl-scale));
+  /* Promotes the whole stage to its own layer, so the scale transform is
+     applied by the compositor once instead of re-rastering descendants. */
+  will-change: transform;
+}
+
+.edl-design-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--edl-design-w) * 1px);
+  height: calc(var(--edl-design-h) * 1px);
+  margin-left: calc(var(--edl-design-w) * -0.5px);
+  margin-top: calc(var(--edl-design-h) * -0.5px);
+}
+
+/**
+ * Design-space positioning helper. A scene element sets `--box-x/-y/-w/-h` as
+ * px lengths and, optionally, an origin: `data-origin="center"` pivots on the
+ * point, matching Phaser's `setOrigin(0.5)`; the default pivots top-left,
+ * matching a Figma box. Width and height fall back to `auto`, so a plain
+ * container can size to its content.
+ */
+.edl-box {
+  position: absolute;
+  left: var(--box-x, 0);
+  top: var(--box-y, 0);
+  width: var(--box-w, auto);
+  height: var(--box-h, auto);
+}
+
+.edl-box[data-origin='center'] {
+  translate: -50% -50%;
+}
+
+/** Fills its box the way `coverFit` did — aspect preserved, overflow cropped. */
+.edl-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/** Fits inside its box without cropping, like `containFit`. */
+.edl-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

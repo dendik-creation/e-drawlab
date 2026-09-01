@@ -1,0 +1,71 @@
+/**
+ * Design tokens, lifted verbatim from the values the Phaser scenes already
+ * draw with (`game/desainSkema/uiKit.ts`, the per-scene colour constants and
+ * `styles/fonts.css`). Hex values are the same numbers, written for CSS —
+ * nothing here was re-picked by eye, so the migration cannot drift the
+ * palette.
+ */
+
+:root {
+  /* Brand + chrome */
+  --c-text: #0c6179;
+  --c-text-muted: #7a8a90;
+  --c-border: #2b909f;
+  --c-badge-fill: #0c6179;
+  --c-badge-text: #faf3e7;
+  --c-page: #faf3e7;
+  --c-page-alt: #f2ecf5;
+  --c-card: #fbf0dc;
+  --c-card-edge: #ece0c8;
+  --c-white: #ffffff;
+
+  /* Journey-specific body copy, kept distinct where the Figma frames are */
+  --c-body-text: #123c46;
+  --c-caption: #66878e;
+
+  /* Quiz feedback */
+  --c-correct-fill: #e9f9f1;
+  --c-correct-border: #1fae6b;
+  --c-correct-text: #12915a;
+  --c-wrong-fill: #fdecec;
+  --c-wrong-border: #d9534f;
+  --c-wrong-text: #c0392b;
+
+  /* Buttons */
+  --c-primary: #2b909f;
+  --c-primary-edge: #1d6f7c;
+  --c-disabled: #cfcac0;
+  --c-disabled-edge: #b9b1a4;
+
+  /* Type */
+  --font-heading: 'Baloo 2 Variable', 'Baloo 2', sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
+
+  /* Motion — the same durations/easings BubbleSequence and uiKit animate with */
+  --t-hover: 150ms;
+  --t-press-down: 90ms;
+  --t-press-up: 180ms;
+  --t-fade-down: 340ms;
+  --t-bubble-in: 720ms;
+  --t-bubble-out: 520ms;
+  --t-exit-fade: 200ms;
+  --ease-back-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-back-in: cubic-bezier(0.36, 0, 0.66, -0.56);
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+/**
+ * Reduced motion is a *setting* in this app, not only a media query — the
+ * learner can turn it on in preferences (see state/settings.ts), so the
+ * shortened durations are keyed off a class the shell puts on <html> rather
+ * than the media query alone.
+ */
+.reduced-motion {
+  --t-fade-down: 220ms;
+  --t-bubble-in: 220ms;
+  --t-bubble-out: 220ms;
+  --ease-back-out: var(--ease-in-out);
+  --ease-back-in: var(--ease-in-out);
+}

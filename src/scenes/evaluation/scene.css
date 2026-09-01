@@ -1,0 +1,44 @@
+/**
+ * Shared journey-scene shell: the page background and the flat exit fade
+ * every journey leaves on (`uiKit.EXIT_FADE_DURATION`).
+ */
+.scene-body {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  background: var(--c-page);
+  transition: opacity var(--t-exit-fade) var(--ease-in-out);
+}
+
+.scene-body.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/**
+ * One step's content. Steps cross-fade: the outgoing one drops to 0 over
+ * SWAP_OUT_MS, then the incoming one fades up — the same body transition the
+ * canvas journeys ran between steps.
+ */
+.scene-step {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  animation: scene-step-in 220ms var(--ease-out) both;
+}
+
+.scene-step.is-swapping {
+  animation: none;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-in-out);
+  pointer-events: none;
+}
+
+@keyframes scene-step-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

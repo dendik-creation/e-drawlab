@@ -1,0 +1,47 @@
+/**
+ * Hover/press feel for every clickable element. Scales only — no layout
+ * property is touched, so each state change is a compositor transform rather
+ * than a re-layout.
+ */
+.edl-pressable {
+  /* A <button> for keyboard and assistive-tech reasons, stripped of its
+     chrome so it can wrap artwork the same way a Phaser Image did. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  transform-origin: center;
+  transition: transform var(--t-hover) var(--ease-out);
+  touch-action: none;
+}
+
+.edl-pressable:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.edl-pressable[data-pressed] {
+  transform: scale(0.92);
+  transition-duration: var(--t-press-down);
+}
+
+.edl-pressable:disabled {
+  cursor: default;
+  transform: none;
+}
+
+.edl-pressable:focus-visible {
+  outline: 3px solid var(--c-border);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edl-pressable {
+    transition: none;
+  }
+}

@@ -1,0 +1,79 @@
+/**
+ * Slider visuals, matching the Figma control the canvas build drew with
+ * Graphics: 6px track, 20px thumb, mono readout and captions.
+ */
+.sim-slider {
+  --slider-accent: #0c6179;
+  position: relative;
+}
+
+.sim-slider-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 20px;
+}
+
+.sim-slider-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  color: #12333b;
+}
+
+.sim-slider-value {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--slider-accent);
+}
+
+.sim-slider-track {
+  position: relative;
+  height: 6px;
+  margin-top: 14px;
+  border-radius: 3px;
+  background: rgba(102, 135, 142, 0.25);
+  cursor: pointer;
+  touch-action: none;
+  /* The track itself is a 6px-tall target; the padding box stays 6px while the
+     grab area extends above and below it. */
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  background-clip: padding-box;
+}
+
+.sim-slider-fill {
+  height: 100%;
+  min-width: 6px;
+  border-radius: 3px;
+  background: var(--slider-accent);
+}
+
+.sim-slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--slider-accent);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.sim-slider-bounds {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #66878e;
+}
+
+.sim-slider-track:focus-visible {
+  outline: 3px solid var(--c-border);
+  outline-offset: 6px;
+}

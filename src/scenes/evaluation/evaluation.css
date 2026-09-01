@@ -1,0 +1,471 @@
+/**
+ * Evaluasi. The canvas version measured every box by hand — question text
+ * height fed the options' top, which fed the card height, which fed the
+ * feedback and button positions, all recomputed per question. Here that is
+ * document flow: the numbers below are only the authored paddings, gaps and
+ * the card's own width.
+ */
+
+.eval-root {
+  position: absolute;
+  inset: 0;
+}
+
+.eval-side-art {
+  position: absolute;
+  top: 170px;
+  display: block;
+}
+
+.eval-side-art.is-left {
+  left: 60px;
+}
+
+.eval-side-art.is-right {
+  right: 60px;
+}
+
+/* ---------------------------------------------------------------- intro */
+
+.eval-intro {
+  position: absolute;
+  left: 960px;
+  top: 210px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+  width: 640px;
+}
+
+.eval-intro-card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 40px 40px 36px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 2px solid var(--c-card-edge);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+.eval-intro-title {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--c-text);
+}
+
+.eval-intro-subtitle {
+  margin: 10px 0 26px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--c-text-muted);
+}
+
+.eval-intro-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.eval-intro-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.eval-intro-bullet {
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-badge-fill);
+  color: var(--c-badge-text);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eval-intro-text {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--c-text);
+}
+
+/* ------------------------------------------------------------ countdown */
+
+/**
+ * "3 → 2 → 1", each digit dropping in from above and falling on through —
+ * opacity and Y both animating the whole time, per the evaluation redesign's
+ * animation rule. Re-keyed per digit so the animation restarts.
+ */
+.eval-countdown {
+  position: absolute;
+  left: 960px;
+  top: 560px;
+  translate: -50% -50%;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 160px;
+  color: var(--c-text);
+  animation: edl-countdown 860ms var(--ease-in-out) both;
+}
+
+@keyframes edl-countdown {
+  0% {
+    opacity: 0;
+    transform: translateY(-70px);
+  }
+  30%,
+  74% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(70px);
+  }
+}
+
+/* ------------------------------------------------------------- question */
+
+.eval-question,
+.eval-result {
+  position: absolute;
+  left: 160px;
+  top: 176px;
+  width: 1600px;
+}
+
+.eval-progress-label {
+  margin: 0 0 10px;
+  height: 22px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--c-text-muted);
+}
+
+.eval-progress-track {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(12, 97, 121, 0.15);
+  overflow: hidden;
+}
+
+.eval-progress-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--c-badge-fill);
+  transition: width var(--t-fade-down) var(--ease-out);
+}
+
+.eval-card {
+  position: relative;
+  margin-top: 22px;
+  box-sizing: border-box;
+  padding: 44px 44px 34px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 2px solid rgba(43, 144, 159, 0.35);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* Diagram beside the question, in the authored 42/58 split. */
+.eval-card[data-with-image] {
+  display: grid;
+  grid-template-columns: 42fr 58fr;
+  gap: 44px;
+}
+
+/** Number badge straddling the card's top-left corner. */
+.eval-card-badge {
+  position: absolute;
+  left: 30px;
+  top: 0;
+  translate: -50% -50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--c-badge-fill);
+  border: 3px solid var(--c-page);
+  color: var(--c-badge-text);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.eval-image-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  min-height: 340px;
+  padding: 18px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #faf6ea;
+  border: 2px solid rgba(43, 144, 159, 0.25);
+}
+
+.eval-question-image {
+  display: block;
+  width: 100%;
+  max-height: 440px;
+  object-fit: contain;
+  min-height: 0;
+}
+
+.eval-answer-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.eval-question-text {
+  margin: 0 0 22px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 30px;
+  color: var(--c-text);
+}
+
+/* Without a diagram the question centres over full-width answers. */
+.eval-card:not([data-with-image]) .eval-question-text {
+  text-align: center;
+  font-size: 27px;
+  line-height: 35px;
+  margin-bottom: 30px;
+}
+
+.eval-options {
+  display: grid;
+  gap: 16px 22px;
+}
+
+.eval-options[data-layout='grid'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.eval-card:not([data-with-image]) .eval-options[data-layout='grid'] {
+  max-width: 1382px;
+  margin: 0 auto;
+}
+
+.eval-options[data-layout='stack'] {
+  grid-template-columns: 1fr;
+}
+
+.eval-card:not([data-with-image]) .eval-options[data-layout='stack'] {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.eval-option {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 82px;
+  padding: 16px 22px;
+  border-radius: 26px;
+  background: #ffffff;
+  border: 2px solid rgba(12, 97, 121, 0.3);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--t-hover) var(--ease-out),
+    background-color var(--t-hover) linear,
+    border-color var(--t-hover) linear;
+  box-sizing: border-box;
+}
+
+.eval-option:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.eval-option:disabled {
+  cursor: default;
+}
+
+.eval-option-badge {
+  flex: 0 0 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid rgba(12, 97, 121, 0.6);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eval-option-text {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 22px;
+  color: var(--c-text);
+}
+
+.eval-option[data-state='correct'] {
+  background: var(--c-correct-fill);
+  border-color: var(--c-correct-border);
+}
+
+.eval-option[data-state='correct'] .eval-option-badge {
+  border-color: var(--c-correct-border);
+  color: var(--c-correct-text);
+}
+
+.eval-option[data-state='correct'] .eval-option-text {
+  color: var(--c-correct-text);
+}
+
+.eval-option[data-state='wrong'] {
+  background: var(--c-wrong-fill);
+  border-color: var(--c-wrong-border);
+}
+
+.eval-option[data-state='wrong'] .eval-option-badge {
+  border-color: var(--c-wrong-border);
+  color: var(--c-wrong-text);
+}
+
+.eval-option[data-state='wrong'] .eval-option-text {
+  color: var(--c-wrong-text);
+}
+
+.eval-option[data-state='dim'] {
+  border-color: #d8d8d8;
+}
+
+.eval-option[data-state='dim'] .eval-option-badge {
+  opacity: 0.35;
+}
+
+.eval-option[data-state='dim'] .eval-option-text {
+  opacity: 0.45;
+}
+
+.eval-feedback-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  margin-top: 28px;
+}
+
+.eval-feedback {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--c-wrong-text);
+}
+
+.eval-feedback[data-correct] {
+  color: var(--c-correct-text);
+}
+
+/* --------------------------------------------------------------- result */
+
+.eval-result {
+  left: 960px;
+  top: 250px;
+  width: 560px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eval-result-card {
+  width: 100%;
+  min-height: 340px;
+  box-sizing: border-box;
+  padding: 38px 48px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 2px solid var(--c-card-edge);
+  box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.eval-result-icon {
+  display: block;
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+.eval-result-heading {
+  margin: 28px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--c-text);
+}
+
+.eval-result-label {
+  margin: 16px 0 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--c-text-muted);
+}
+
+.eval-result-score {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+}
+
+.eval-result-score-value {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 48px;
+  color: var(--c-text);
+}
+
+.eval-result-score-total {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--c-text-muted);
+}
+
+.eval-result-message {
+  margin: 20px 0 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--c-text);
+}
+
+.eval-result-actions {
+  display: flex;
+  gap: 24px;
+  margin-top: 60px;
+}

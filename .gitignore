@@ -30,3 +30,6 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Render-migration harness output (scripts/perf)
+.screenshots

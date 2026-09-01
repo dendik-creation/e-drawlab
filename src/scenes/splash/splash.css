@@ -1,0 +1,217 @@
+/**
+ * Splash. Positions are the design-space numbers from the Figma frame; the
+ * background and footer bar anchor to the stage instead, so they reach the
+ * true viewport edge at any aspect ratio.
+ */
+
+.splash-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.splash-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  background: var(--c-badge-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: edl-fade-down var(--t-fade-down) var(--ease-back-out) both;
+  animation-delay: 460ms;
+}
+
+.splash-footer-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.splash-subtitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 48px;
+  /* 48px of glyph + the 6px lineSpacing the canvas version passed, matched
+     against the baseline capture — Phaser derived its leading from the font's
+     own metrics, which for Baloo 2 lands just above 1em. */
+  line-height: 56px;
+  color: var(--c-text);
+  text-align: center;
+  white-space: pre-line;
+}
+
+.splash-progress-label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 24px;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+
+/* Bubbles away the moment loading finishes, the way the canvas version's bar
+   scaled up and faded out before the tap gate arrived. `animation: none`
+   hands the transform back to the transition — the entrance keyframes hold
+   their end state otherwise, and would win. */
+.edl-bubble.is-done {
+  animation: none;
+  opacity: 0;
+  transform: scale(1.3);
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--ease-in-out),
+    transform 280ms var(--ease-in-out);
+}
+
+.splash-bar {
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--c-border);
+  border-radius: 17px;
+  background: #ffffff;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.splash-bar-fill {
+  height: 100%;
+  background: #ceb5e5;
+  border-radius: 17px;
+  /* The width is set from state each frame of the load; animating it here
+     would fight that, so only the paint is left to the compositor. */
+  will-change: width;
+}
+
+/**
+ * A zero-size anchor at the call-to-action point: both gates position their
+ * parts against it directly, which keeps each part's transform origin on its
+ * own centre.
+ */
+.splash-gate {
+  position: absolute;
+  left: var(--gate-x);
+  top: var(--gate-y);
+  animation: edl-gate-in 320ms var(--ease-back-out) both;
+  animation-delay: 140ms;
+}
+
+@keyframes edl-gate-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/**
+ * Idle affordance: the icon breathes in place. On a loop rather than on
+ * hover — the whole screen is the hitbox, so there is no single spot to
+ * hover.
+ */
+.splash-touch-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  display: block;
+  object-fit: contain;
+  animation: edl-touch-pulse 1400ms var(--ease-in-out) infinite;
+}
+
+.splash-touch-icon.is-pressed {
+  animation: none;
+  transform: scale(0.9);
+  transition: transform var(--t-press-down) var(--ease-out);
+}
+
+@keyframes edl-touch-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.splash-hint {
+  position: absolute;
+  translate: -50% -50%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2px solid var(--c-border);
+  border-radius: 16px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--c-text);
+  box-sizing: border-box;
+}
+
+/** A phone that keeps turning itself from portrait to landscape. */
+.splash-rotate-phone {
+  position: absolute;
+  left: 0;
+  top: -40px;
+  translate: -50% -50%;
+  animation: edl-phone-tilt 3200ms var(--ease-in-out) infinite;
+}
+
+@keyframes edl-phone-tilt {
+  0%,
+  22% {
+    transform: rotate(0deg);
+  }
+  50%,
+  72% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.splash-tap-zone {
+  position: absolute;
+  inset: 0;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.splash-rotate-label {
+  position: absolute;
+  left: 0;
+  top: 92px;
+  translate: -50% -50%;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 34px;
+  color: var(--c-text);
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-touch-icon,
+  .splash-rotate-phone {
+    animation: none;
+  }
+}

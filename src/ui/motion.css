@@ -1,0 +1,69 @@
+/**
+ * Bubble entrance/exit. Both directions animate the same two properties
+ * (transform + opacity), which the compositor can run without touching
+ * layout or paint.
+ */
+.edl-bubble {
+  position: absolute;
+  left: var(--box-x, 0);
+  top: var(--box-y, 0);
+  width: var(--box-w, auto);
+  height: var(--box-h, auto);
+  animation-duration: var(--t-bubble-in);
+  animation-delay: var(--bubble-delay, 0ms);
+  animation-fill-mode: both;
+  animation-timing-function: var(--ease-back-out);
+}
+
+.edl-bubble[data-origin='center'] {
+  translate: -50% -50%;
+}
+
+.edl-bubble[data-phase='in'] {
+  animation-name: edl-bubble-in;
+}
+
+.edl-bubble[data-phase='out'] {
+  animation-name: edl-bubble-out;
+  animation-duration: var(--t-bubble-out);
+  animation-timing-function: var(--ease-back-in);
+}
+
+@keyframes edl-bubble-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--bubble-scale-from, 0.62));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes edl-bubble-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(var(--bubble-scale-from, 0.62));
+  }
+}
+
+/** Fade in while sliding down from above — the journey scenes' own entrance language (uiKit.fadeDownIn). */
+.edl-fade-down {
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+  animation-delay: var(--fade-delay, 0ms);
+}
+
+@keyframes edl-fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--fade-distance, 26) * -1px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
