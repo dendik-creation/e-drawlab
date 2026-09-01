@@ -1,0 +1,483 @@
+/**
+ * Jalur PCB — Langkah 1 (materi).
+ *
+ * Colours and sizes are the Figma-frame values the canvas build drew with;
+ * `BODY_TEXT`, `MUTED_TEXT` and the card border there map to the variables
+ * below.
+ */
+
+.jm-viewport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* The stage disables touch gestures globally so a tap is never swallowed by
+     gesture arbitration; this region is the one place that wants them back. */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(43, 144, 159, 0.55) rgba(102, 135, 142, 0.15);
+}
+
+.jm-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jm-viewport::-webkit-scrollbar-track {
+  background: rgba(102, 135, 142, 0.15);
+  border-radius: 3px;
+}
+
+.jm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(43, 144, 159, 0.55);
+  border-radius: 3px;
+}
+
+.jm-column {
+  position: relative;
+}
+
+.jm-section {
+  position: absolute;
+  left: 0;
+  right: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* ------------------------------------------------------------ type */
+
+.jm-hero-heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 48px;
+  color: var(--c-text);
+  white-space: pre-line;
+}
+
+.jm-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 27px;
+  line-height: 34px;
+  color: var(--c-text);
+}
+
+.jm-center {
+  text-align: center;
+}
+
+.jm-right-align {
+  text-align: right;
+}
+
+.jm-label {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--c-text);
+}
+
+.jm-para {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--c-body-text);
+}
+
+.jm-para-sm {
+  font-size: 14.5px;
+  line-height: 21px;
+}
+
+.jm-para-xs {
+  font-size: 13.5px;
+  line-height: 20px;
+}
+
+.jm-muted {
+  color: var(--c-caption);
+}
+
+.jm-caption {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 13.5px;
+  color: var(--c-caption);
+}
+
+/* ----------------------------------------------------------- panels */
+
+.jm-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-shadow: 1px 3px 0 rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.jm-panel img {
+  object-fit: contain;
+  display: block;
+}
+
+/* -------------------------------------------------------- section 2 */
+
+.jm-dark-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 16px;
+  background: var(--c-badge-fill);
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.jm-dark-label {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--c-badge-text);
+  text-align: center;
+}
+
+.jm-dark-label-wrap {
+  max-width: 392px;
+}
+
+.jm-legend-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 12px;
+  border-left: 2px solid rgba(102, 135, 142, 0.33);
+  box-sizing: border-box;
+}
+
+.jm-legend-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--c-caption);
+}
+
+.jm-legend-value {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--c-text);
+}
+
+.jm-legend-sub {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--c-caption);
+}
+
+/* -------------------------------------------------------- section 4 */
+
+.jm-factor-card {
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.jm-factor-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--c-badge-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jm-factor-number {
+  position: absolute;
+  right: 20px;
+  top: 25.5px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: rgba(102, 135, 142, 0.53);
+}
+
+.jm-factor-label {
+  display: block;
+  margin-top: 13px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--c-text);
+}
+
+.jm-factor-desc {
+  margin-top: 11px;
+}
+
+/* -------------------------------------------------------- section 5 */
+
+.jm-compare-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  padding: 20px 24px;
+}
+
+.jm-compare-card.is-soft {
+  background: rgba(12, 97, 121, 0.05);
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  align-items: flex-end;
+}
+
+.jm-compare-card.is-dark {
+  background: var(--c-badge-fill);
+}
+
+.jm-compare-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--c-text);
+}
+
+.jm-compare-card.is-dark .jm-compare-title {
+  color: var(--c-badge-text);
+}
+
+.jm-compare-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jm-compare-meta-text {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--c-caption);
+}
+
+.jm-compare-card.is-dark .jm-compare-meta-text {
+  color: var(--c-badge-text);
+  opacity: 0.9;
+}
+
+/* -------------------------------------------------------- section 6 */
+
+.jm-formula-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-sizing: border-box;
+  padding: 41px 0 0;
+}
+
+.jm-formula {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--c-text);
+  text-align: center;
+}
+
+.jm-subformula {
+  margin: 26px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--c-caption);
+  text-align: center;
+}
+
+.jm-divider {
+  width: 672px;
+  height: 1px;
+  margin-top: 32px;
+  background: rgba(102, 135, 142, 0.2);
+}
+
+.jm-formula-note {
+  max-width: 672px;
+  margin-top: 18px;
+}
+
+/* -------------------------------------------------------- section 7 */
+
+.jm-calc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+
+.jm-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 98px;
+  padding-top: 17px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-sizing: border-box;
+}
+
+.jm-chip.is-dark {
+  height: 107px;
+  background: var(--c-badge-fill);
+  border-color: transparent;
+}
+
+.jm-chip-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--c-caption);
+  text-align: center;
+}
+
+.jm-chip.is-dark .jm-chip-label {
+  color: var(--c-badge-text);
+  opacity: 0.85;
+}
+
+.jm-chip-value {
+  margin-top: 2px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--c-text);
+}
+
+.jm-chip-value.is-big {
+  font-size: 48px;
+  color: var(--c-badge-text);
+}
+
+.jm-op {
+  align-self: center;
+  margin-top: 14px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--c-caption);
+}
+
+.jm-step-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-sizing: border-box;
+}
+
+.jm-step-value {
+  width: 52px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--c-text);
+}
+
+.jm-step-bar {
+  background: var(--c-badge-fill);
+}
+
+.jm-step-result {
+  margin-left: auto;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--c-text);
+}
+
+/* -------------------------------------------------------- section 8 */
+
+.jm-measure-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 44px;
+}
+
+.jm-measure-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 87px;
+  height: 28px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--c-text);
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------- section 9 */
+
+.jm-recap-card {
+  border-radius: 16px;
+  background: rgba(12, 97, 121, 0.05);
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-sizing: border-box;
+  padding: 24px;
+}
+
+.jm-recap-number {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 34px;
+  color: rgba(102, 135, 142, 0.4);
+}
+
+.jm-recap-label {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--c-text);
+}
+
+.jm-recap-desc {
+  margin-top: 12px;
+}
+
+/* --------------------------------------------------------- footer */
+
+.jm-footer {
+  position: absolute;
+  left: 1630px;
+  top: 972px;
+}

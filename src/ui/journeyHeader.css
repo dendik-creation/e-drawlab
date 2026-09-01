@@ -10,6 +10,10 @@
 .jh-root {
   position: absolute;
   inset: 0;
+  /* Above the step layer, which also covers the whole frame: without this the
+     step's own root swallowed every click meant for the home/back icons. The
+     root itself stays click-through so only the controls capture input. */
+  z-index: 2;
   pointer-events: none;
 }
 

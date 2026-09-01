@@ -49,8 +49,12 @@ export async function scrollMateriToEnd(page) {
   await wheelDesign(page, 960, 600, 900, 20)
 }
 
-/** First slider in the Jalur PCB "Kontrol Input" card — dragged end to end. */
-export const JALUR_SLIDER = { from: { x: 300, y: 360 }, to: { x: 600, y: 360 } }
+/**
+ * The "Beban Daya" track in the Jalur PCB control card, dragged end to end.
+ * y is the track's own centre line in design space — a few pixels off and the
+ * gesture lands on the panel instead, which benchmarks nothing.
+ */
+export const JALUR_SLIDER = { from: { x: 260, y: 336 }, to: { x: 580, y: 336 } }
 
 /** Empty space inside the CAD Casing 3D viewport, orbited in a wide arc. */
 export const CASING_ORBIT = { from: { x: 1290, y: 560 }, to: { x: 1500, y: 440 } }

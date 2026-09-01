@@ -41,7 +41,9 @@ export default function EvaluasiAkhirScene({ navigate }: SceneProps) {
           disabled={exiting}
           onHome={goHome}
         />
-        <EvaluationView config={EVALUASI_AKHIR_EVALUATION} onExitHome={goHome} />
+        <div className="scene-step">
+          <EvaluationView config={EVALUASI_AKHIR_EVALUATION} onExitHome={goHome} />
+        </div>
       </div>
     </DesignFrame>
   )
