@@ -4,6 +4,8 @@ import { audio } from './audio/AudioDirector'
 import { DPR, measureStage, stage, STAGE_RESIZE_EVENT, updateDPR } from './stage'
 import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from './state/session'
 import { Boot } from './scenes/Boot'
+import { createBridgeScene } from './scenes/BridgeScene'
+import { setBootTarget } from './bootTarget'
 import { Splash } from './scenes/Splash'
 import { Home, type HomeMenuAction } from './scenes/Home'
 import { DesainSkema } from './scenes/DesainSkema'
@@ -17,6 +19,16 @@ const HOME_DESTINATIONS: Partial<Record<HomeMenuAction, string>> = {
   'jalur-pcb': 'JalurPcb',
   'cad-casing': 'CadCasing',
   'evaluasi-akhir': 'EvaluasiAkhir',
+}
+
+/** Scene classes by key, so a migrated scene can be swapped for a bridge without touching this list's order. */
+const SCENE_CLASSES: Record<string, new () => Phaser.Scene> = {
+  Splash,
+  Home,
+  DesainSkema,
+  JalurPcb,
+  CadCasing,
+  EvaluasiAkhir,
 }
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -36,7 +48,6 @@ const config: Phaser.Types.Core.GameConfig = {
     // it Phaser assumes desktop-class multi-texture batching everywhere.
     autoMobileTextures: true,
   },
-  scene: [Boot, Splash, Home, DesainSkema, JalurPcb, CadCasing, EvaluasiAkhir],
 }
 
 let game: Phaser.Game | null = null
@@ -159,8 +170,25 @@ function onHomeExitComplete(action: HomeMenuAction) {
   game?.scene.start(target)
 }
 
-export function StartGame(parent: string | HTMLElement): Phaser.Game {
+export interface StartGameOptions {
+  /** Scene to open after Boot. Defaults to Splash. */
+  startScene?: string
+  /**
+   * Keys that have migrated to React. Each is registered as a bridge scene
+   * (see BridgeScene.ts) so a Phaser scene navigating to one hands control
+   * back to the React router instead of rendering a canvas version.
+   */
+  reactScenes?: string[]
+}
+
+export function StartGame(parent: string | HTMLElement, options: StartGameOptions = {}): Phaser.Game {
   if (game) return game
+
+  setBootTarget(options.startScene ?? null)
+  const reactScenes = new Set(options.reactScenes ?? [])
+  const scenes = Object.entries(SCENE_CLASSES).map(([key, sceneClass]) =>
+    reactScenes.has(key) ? createBridgeScene(key) : sceneClass,
+  )
 
   containerEl = typeof parent === 'string' ? document.getElementById(parent) : parent
   applyContainerSize()
@@ -171,6 +199,7 @@ export function StartGame(parent: string | HTMLElement): Phaser.Game {
 
   game = new Phaser.Game({
     ...config,
+    scene: [Boot, ...scenes],
     width: stage.width * DPR,
     height: stage.height * DPR,
     parent,
@@ -191,4 +220,5 @@ export function StopGame() {
   game?.destroy(true)
   game = null
   containerEl = null
+  setBootTarget(null)
 }

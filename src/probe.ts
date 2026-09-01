@@ -1,4 +1,5 @@
 import { session } from './game/state/session'
+import { audio } from './audio/director'
 
 /**
  * Test probe for the render-migration harness (`scripts/perf`).
@@ -25,6 +26,10 @@ export function installProbe() {
       },
       get session() {
         return session.get()
+      },
+      /** Which BGM/ambience track each layer is on — see AudioDirector.debugState. */
+      get audio() {
+        return audio.debugState
       },
     },
   })

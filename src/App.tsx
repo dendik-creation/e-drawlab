@@ -1,11 +1,11 @@
-import PhaserGame from './PhaserGame'
+import SceneRouter from './app/SceneRouter'
 import OrientationGuard from './OrientationGuard'
 import './App.css'
 
 function App() {
   return (
     <>
-      <PhaserGame />
+      <SceneRouter />
       <OrientationGuard />
     </>
   )
