@@ -1,0 +1,23 @@
+/** Text positioned in design space. Width-less blocks size to their content and pivot on their own centre. */
+.edl-text {
+  position: absolute;
+  left: var(--box-x, 0);
+  top: var(--box-y, 0);
+  width: max-content;
+  max-width: var(--box-w, none);
+  white-space: pre-line;
+  margin: 0;
+}
+
+.edl-text[data-origin='center'] {
+  translate: -50% -50%;
+}
+
+.edl-text[data-origin='topcenter'] {
+  translate: -50% 0;
+}
+
+/** A block given an explicit width lays out at that width rather than hugging its text. */
+.edl-text[data-fixed-width] {
+  width: var(--box-w);
+}

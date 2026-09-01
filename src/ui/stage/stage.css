@@ -47,17 +47,18 @@
 }
 
 /**
- * Design-space positioning helper. A scene element sets `--x/--y/--w/--h` (in
- * design px) and, optionally, an origin: `data-origin="center"` pivots on the
+ * Design-space positioning helper. A scene element sets `--box-x/-y/-w/-h` as
+ * px lengths and, optionally, an origin: `data-origin="center"` pivots on the
  * point, matching Phaser's `setOrigin(0.5)`; the default pivots top-left,
- * matching a Figma box.
+ * matching a Figma box. Width and height fall back to `auto`, so a plain
+ * container can size to its content.
  */
 .edl-box {
   position: absolute;
-  left: calc(var(--x, 0) * 1px);
-  top: calc(var(--y, 0) * 1px);
-  width: calc(var(--w, 0) * 1px);
-  height: calc(var(--h, 0) * 1px);
+  left: var(--box-x, 0);
+  top: var(--box-y, 0);
+  width: var(--box-w, auto);
+  height: var(--box-h, auto);
 }
 
 .edl-box[data-origin='center'] {

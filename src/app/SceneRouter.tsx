@@ -15,6 +15,9 @@ import { REACT_SCENES, isReactScene, type SceneKey } from './scenes'
  */
 type Active = { kind: 'phaser'; startScene?: SceneKey } | { kind: 'react'; scene: SceneKey }
 
+/** Where the app opens. Phaser's Boot scene leads here too, when this has not migrated yet. */
+const ENTRY_SCENE: SceneKey = 'Splash'
+
 /**
  * Owns which screen is on show and which renderer draws it.
  *
@@ -25,7 +28,9 @@ type Active = { kind: 'phaser'; startScene?: SceneKey } | { kind: 'react'; scene
  * yet.
  */
 export default function SceneRouter() {
-  const [active, setActive] = useState<Active>({ kind: 'phaser' })
+  const [active, setActive] = useState<Active>(
+    isReactScene(ENTRY_SCENE) ? { kind: 'react', scene: ENTRY_SCENE } : { kind: 'phaser' },
+  )
 
   const navigate = useCallback((scene: SceneKey) => {
     setActive(isReactScene(scene) ? { kind: 'react', scene } : { kind: 'phaser', startScene: scene })

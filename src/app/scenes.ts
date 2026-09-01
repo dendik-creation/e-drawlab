@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react'
+import SplashScene from '../scenes/splash/SplashScene'
+import HomeScene from '../scenes/home/HomeScene'
 
 /** Every screen in the app, by the key both renderers agree on. */
 export type SceneKey = 'Splash' | 'Home' | 'DesainSkema' | 'JalurPcb' | 'CadCasing' | 'EvaluasiAkhir'
@@ -17,7 +19,10 @@ export interface SceneProps {
  * hand control back rather than drawing their own version. Add an entry as
  * each phase lands; when the map is complete, Phaser goes.
  */
-export const REACT_SCENES: Partial<Record<SceneKey, ComponentType<SceneProps>>> = {}
+export const REACT_SCENES: Partial<Record<SceneKey, ComponentType<SceneProps>>> = {
+  Splash: SplashScene,
+  Home: HomeScene,
+}
 
 export function isReactScene(scene: SceneKey) {
   return scene in REACT_SCENES
