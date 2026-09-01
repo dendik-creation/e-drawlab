@@ -20,7 +20,7 @@ import {
   type SimulatorInput,
   type SliderRange,
   type TraceStatus,
-} from '../../game/jalurPcb/traceModel'
+} from '../../domain/jalurPcb/traceModel'
 import ActionButton from '../../ui/ActionButton'
 import SimSlider from '../../ui/SimSlider'
 import rulerUrl from '../../../assets/images/03_electronic_assets/grouped/02_Pcb_Path/simulasi/ruler_ticks.svg'

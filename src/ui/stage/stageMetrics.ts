@@ -1,9 +1,9 @@
-import { createStore } from '../../game/state/store'
-import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from '../../game/state/session'
+import { createStore } from '../../state/store'
+import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from '../../state/session'
 
 /**
  * Geometry for the DOM stage — the replacement for the Phaser ScaleManager +
- * supersampled camera in `game/stage.ts`.
+ * supersampled camera the canvas build used.
  *
  * That whole arrangement (canvas built at `stage.width * DPR`, FIT-scaled to
  * the viewport, camera zoomed back by DPR) reduces to a single number:

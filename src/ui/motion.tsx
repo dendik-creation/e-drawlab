@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
-import { settings } from '../game/state/settings'
+import { settings } from '../state/settings'
 import { bubbleDuration, IN_DURATION, IN_STAGGER, OUT_DURATION, OUT_STAGGER, REDUCED_DURATION } from './bubbleTiming'
 import './motion.css'
 

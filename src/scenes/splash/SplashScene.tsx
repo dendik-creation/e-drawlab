@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { audio } from '../../audio/director'
-import { session } from '../../game/state/session'
+import { session } from '../../state/session'
 import { DesignFrame } from '../../ui/stage/StageRoot'
 import { BubbleItem, BubbleStage } from '../../ui/motion'
 import PhoneOutline from '../../ui/PhoneOutline'
@@ -19,7 +19,7 @@ import './splash.css'
  * when loading finishes.
  *
  * Every coordinate below is the same design-space number the canvas version
- * used; see the constants at the top of the old `game/scenes/Splash.ts`.
+ * used, taken from the canvas build's own constants.
  */
 
 const BAR = { x: 960, y: 704.5, width: 738, height: 41 }

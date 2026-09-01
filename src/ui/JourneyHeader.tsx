@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { settings, toggleMute } from '../game/state/settings'
+import { settings, toggleMute } from '../state/settings'
 import Pressable from './Pressable'
 import { textureUrl } from './assets/textures'
 import './journeyHeader.css'

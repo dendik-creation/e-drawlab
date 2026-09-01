@@ -8,6 +8,28 @@ Changes to the **project and its documentation**. Application releases will be a
 
 Format: reverse chronological, newest first.
 
+## 2026-09-01 — Rendering migrated off the canvas
+
+**Changed — every scene now renders as React DOM/SVG; Phaser removed.**
+
+- Root cause and measurements: [[ADR-011-DOM-First-Rendering]], plan and harness
+  in [[Render-Migration-Plan]].
+- Frame rate on a phone-sized viewport went from 4-7 fps across every scene
+  (idle Home included) to a steady ~60, with long tasks during interaction
+  falling from 463 to 0.
+- JS bundle 1 718,87 kB → 308,08 kB (463,71 → 93,58 kB gzip).
+- Layout, palette, typography, step flow and BGM behaviour are unchanged;
+  every screen was checked against captures of the canvas build.
+- `AudioDirector` keeps its API on a Web Audio backend: loops stream instead of
+  decoding (`work_theme` alone was 100 MB+ of PCM), and fades run on the audio
+  thread.
+- Content and rules — `circuits.ts`, `traceModel.ts`, `casingModel.ts`, the
+  evaluation configs and question banks — were not touched (ADR-003).
+- New reusable UI kit under `src/ui/` (design-space primitives, `Pressable`,
+  `ActionButton`, `JourneyHeader`, `SimSlider`, bubble motion), replacing four
+  near-identical header classes and two per-journey slider implementations.
+- `scripts/perf/` adds a Playwright screenshot + FPS harness, run per phase.
+
 ## 2026-08-16 — Documentation baseline v1
 
 **Added — Obsidian vault populated at `docs/`.**

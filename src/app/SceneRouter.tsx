@@ -1,56 +1,26 @@
-import { useCallback, useEffect, useState } from 'react'
-import { EventBus } from '../game/EventBus'
-import { PHASER_EXIT_EVENT } from '../game/scenes/BridgeScene'
+import { useCallback, useState } from 'react'
 import StageRoot from '../ui/stage/StageRoot'
-import PhaserHost from './PhaserHost'
-import { REACT_SCENES, isReactScene, type SceneKey } from './scenes'
+import { REACT_SCENES, type SceneKey } from './scenes'
 
-/**
- * Which renderer is on screen.
- *
- * `startScene` is deliberately part of the phaser state rather than derived:
- * it keys the host, so moving from one *canvas* scene to another leaves this
- * state untouched (Phaser handles that internally, no remount), while moving
- * React → canvas remounts the game pointed at the right entry scene.
- */
-type Active = { kind: 'phaser'; startScene?: SceneKey } | { kind: 'react'; scene: SceneKey }
-
-/** Where the app opens. Phaser's Boot scene leads here too, when this has not migrated yet. */
+/** Where the app opens. */
 const ENTRY_SCENE: SceneKey = 'Splash'
 
 /**
- * Owns which screen is on show and which renderer draws it.
+ * Owns which screen is on show.
  *
- * The two renderers coexist for the length of the migration. The contract
- * between them is one event each way: a canvas scene navigating to a migrated
- * screen emits `phaser-exit` through its bridge, and a React scene calls
- * `navigate`, which remounts the game when the destination has not migrated
- * yet.
+ * Replaces Phaser's SceneManager: a scene is a component, and navigation is a
+ * state change. Only one scene is mounted at a time, so nothing off screen
+ * holds listeners, timers or GPU resources — the canvas build had to stop the
+ * previous scene explicitly, and a missed stop meant two full scenes updating
+ * and rendering every frame.
  */
 export default function SceneRouter() {
-  const [active, setActive] = useState<Active>(
-    isReactScene(ENTRY_SCENE) ? { kind: 'react', scene: ENTRY_SCENE } : { kind: 'phaser' },
-  )
+  const [scene, setScene] = useState<SceneKey>(ENTRY_SCENE)
 
-  const navigate = useCallback((scene: SceneKey) => {
-    setActive(isReactScene(scene) ? { kind: 'react', scene } : { kind: 'phaser', startScene: scene })
-  }, [])
+  const navigate = useCallback((next: SceneKey) => setScene(next), [])
 
-  useEffect(() => {
-    const onPhaserExit = (scene: string) => {
-      if (isReactScene(scene as SceneKey)) setActive({ kind: 'react', scene: scene as SceneKey })
-    }
-
-    EventBus.on(PHASER_EXIT_EVENT, onPhaserExit)
-    return () => {
-      EventBus.off(PHASER_EXIT_EVENT, onPhaserExit)
-    }
-  }, [])
-
-  if (active.kind === 'phaser') return <PhaserHost startScene={active.startScene} />
-
-  const Scene = REACT_SCENES[active.scene]
-  if (!Scene) return <PhaserHost startScene={active.scene} />
+  const Scene = REACT_SCENES[scene]
+  if (!Scene) return null
 
   return (
     <StageRoot>

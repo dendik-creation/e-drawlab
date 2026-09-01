@@ -10,7 +10,7 @@ import {
   type CircuitLevel,
   type CircuitSlot,
   type PaletteItem,
-} from '../../game/desainSkema/circuits'
+} from '../../domain/desainSkema/circuits'
 import ActionButton from '../../ui/ActionButton'
 import { textureUrl } from '../../ui/assets/textures'
 import { GhostSymbol, JunctionDot, SchematicSymbol, WIRE_FLOW_STROKE, WIRE_STROKE } from './SchematicSymbol'

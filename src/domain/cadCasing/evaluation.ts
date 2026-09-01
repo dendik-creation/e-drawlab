@@ -1,4 +1,4 @@
-import { markMenuCompleted } from '../state/progress'
+import { markMenuCompleted } from '../../state/progress'
 import type { EvaluationConfig, QuizBank, QuizQuestion, ScoreTier } from '../desainSkema/evaluation'
 import questionsData from './evaluationQuestions.json'
 

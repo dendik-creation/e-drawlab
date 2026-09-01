@@ -1,9 +1,9 @@
-import type { Box3 } from '../../game/cadCasing/casingModel'
+import type { Box3 } from '../../domain/cadCasing/casingModel'
 
 /**
  * Orbit-camera projection for the CAD Casing preview.
  *
- * Pure geometry, no renderer: this is `game/cadCasing/box3d.ts`'s maths with
+ * Pure geometry, no renderer: this is `domain/cadCasing/box3d.ts`'s maths with
  * the Phaser drawing calls lifted out, so the same projection now feeds SVG
  * polygons instead of a Graphics object rebuilt on every repaint.
  *

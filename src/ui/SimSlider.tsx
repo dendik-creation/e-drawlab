@@ -1,6 +1,6 @@
 import { useCallback, useRef, type CSSProperties, type ReactNode } from 'react'
 import { audio } from '../audio/director'
-import { clampToRange, type SliderRange } from '../game/jalurPcb/traceModel'
+import { clampToRange, type SliderRange } from '../domain/jalurPcb/traceModel'
 import './simSlider.css'
 
 /**

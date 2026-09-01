@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { DEFAULT_INPUT, RANGES, computeCasing, type CasingInput } from '../../game/cadCasing/casingModel'
+import { DEFAULT_INPUT, RANGES, computeCasing, type CasingInput } from '../../domain/cadCasing/casingModel'
 import ActionButton from '../../ui/ActionButton'
 import SimSlider from '../../ui/SimSlider'
 import Viewport3D from './Viewport3D'

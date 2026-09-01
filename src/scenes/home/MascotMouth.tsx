@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { settings } from '../../game/state/settings'
+import { settings } from '../../state/settings'
 import { MASCOT_BOX, MOUTH_FRAMES } from './homeAssets'
 
 /** Irregular on purpose, so the flap doesn't read as a metronome. */

@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import { buildScene, type CasingInput } from '../../game/cadCasing/casingModel'
+import { buildScene, type CasingInput } from '../../domain/cadCasing/casingModel'
 import {
   AXIS_TIPS,
   project,

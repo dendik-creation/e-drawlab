@@ -74,6 +74,9 @@ Each phase ends green (`build` + `lint`) and runnable, one commit each.
 | 6 | Desain Skema | SVG work sheet, pointer-event drag & drop, palette |
 | 7 | Cleanup | Drop `phaser`, delete dead scene code, final measurements + docs |
 
+All seven landed. The decision and its consequences are recorded in
+[[ADR-011-DOM-First-Rendering]].
+
 ## Harness
 
 ```
@@ -110,7 +113,35 @@ FPS, phone viewport (873×393), no CPU throttling:
 > flat profile across scenes (idle Home ≈ the simulators) is the diagnostic
 > point.
 
+## Result — React build, 2026-09-01
+
+Bundle: **308,08 kB JS (93,58 kB gzip)**, CSS 52,15 kB — down from 1 718,87 kB
+(463,71 kB gzip) once `phaser` came out.
+
+FPS, same viewport and method as the baseline above:
+
+| Scene | Before | After |
+| --- | --- | --- |
+| home (idle) | 4,6 | 59,2 |
+| desain-skema, drag komponen | 6,2 | 59,9 |
+| jalur-pcb materi (scroll) | 3,9 | 60,2 |
+| jalur-pcb, drag slider | 6,1 | 59,6 |
+| cad-casing, orbit 3D | 6,6 | 59,6 |
+| evaluasi-akhir (idle) | — | 60,2 |
+
+Long tasks during interaction: **463 → 0**.
+
+Final layout:
+
+```
+src/app/      shell: router, scene registry
+src/ui/       reusable components + design tokens + the stage layer
+src/scenes/   splash, home, desainSkema, jalurPcb, cadCasing, evaluation
+src/domain/   pure logic: circuits, traceModel, casingModel, evaluation banks
+src/audio/  src/state/
+```
+
 ## Related
 
-- [[Application-Architecture]] · [[ADR-002-Frontend-Stack]] · [[ADR-009-Landscape-First-Layout]]
-- [[Technical-Debt]] · [[Changelog]]
+- [[ADR-011-DOM-First-Rendering]] · [[Application-Architecture]] · [[ADR-002-Frontend-Stack]]
+- [[ADR-009-Landscape-First-Layout]] · [[Technical-Debt]] · [[Changelog]]

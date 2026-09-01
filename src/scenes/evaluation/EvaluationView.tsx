@@ -7,7 +7,7 @@ import {
   type EvaluationConfig,
   type QuizQuestion,
   type ScoreTier,
-} from '../../game/desainSkema/evaluation'
+} from '../../domain/desainSkema/evaluation'
 import ActionButton from '../../ui/ActionButton'
 import { textureUrl } from '../../ui/assets/textures'
 import './evaluation.css'

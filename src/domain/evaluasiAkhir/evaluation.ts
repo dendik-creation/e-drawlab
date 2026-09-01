@@ -1,4 +1,4 @@
-import { markMenuCompleted } from '../state/progress'
+import { markMenuCompleted } from '../../state/progress'
 import { EVALUATION_QUESTIONS as DESAIN_SKEMA_QUESTIONS } from '../desainSkema/evaluation'
 import { JALUR_PCB_QUESTIONS } from '../jalurPcb/evaluation'
 import { CAD_CASING_QUESTIONS } from '../cadCasing/evaluation'

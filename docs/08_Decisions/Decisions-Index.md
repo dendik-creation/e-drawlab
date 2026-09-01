@@ -4,7 +4,7 @@ title: Decisions Index
 
 # Decisions Index
 
-Architecture Decision Records. No fake history: everything is `Proposed` except ADR-010, which records a decision the approved revision itself forces.
+Architecture Decision Records. No fake history: everything is `Proposed` except ADR-010, which records a decision the approved revision itself forces, and ADR-011, which records a change already made in the code.
 
 | ADR | Title | Status | Blocks |
 | --- | --- | --- | --- |
@@ -18,6 +18,7 @@ Architecture Decision Records. No fake history: everything is `Proposed` except 
 | [[ADR-008-No-Accounts-Device-Local-Progress]] | No accounts, device-local progress | Proposed | Data model |
 | [[ADR-009-Landscape-First-Layout]] | Landscape-first with portrait guard | Proposed | Layout system |
 | [[ADR-010-Trace-Width-Model]] | Adopt the revision's copper-weight model | **Accepted** | Stage 2 content |
+| [[ADR-011-DOM-First-Rendering]] | DOM-first rendering, no game engine | **Accepted** | Rendering, [[ADR-006-3D-Rendering-Approach]] |
 
 New ADRs start from [[ADR-Template]].
 

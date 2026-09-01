@@ -1,4 +1,4 @@
-import { EventBus } from '../EventBus'
+import { EventBus } from './eventBus'
 
 export interface Store<T extends object> {
   /** The current state. Treat it as immutable — mutate through `set` so listeners fire. */

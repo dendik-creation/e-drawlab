@@ -1,4 +1,4 @@
-import { settings } from '../game/state/settings'
+import { settings } from '../state/settings'
 
 /**
  * How long a staggered bubble sequence takes, start to finish.

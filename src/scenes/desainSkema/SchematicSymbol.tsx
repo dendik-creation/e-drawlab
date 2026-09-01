@@ -1,10 +1,10 @@
-import type { CircuitSlot } from '../../game/desainSkema/circuits'
+import type { CircuitSlot } from '../../domain/desainSkema/circuits'
 
 /**
  * IEC/ANSI-flavoured schematic symbols, as SVG.
  *
  * Same geometry the canvas build drew with Graphics paths
- * (`game/desainSkema/schematicSymbols.ts`) — every symbol is authored
+ * (the deleted `schematicSymbols.ts`) — every symbol is authored
  * horizontally, centred on its own origin, and a vertical slot is achieved by
  * rotating the group rather than by a second drawing path.
  *

@@ -1,4 +1,4 @@
-import { session } from './game/state/session'
+import { session } from './state/session'
 import { audio } from './audio/director'
 
 /**

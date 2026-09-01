@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from './game/state/session'
+import { LANDSCAPE_ONLY_EXEMPT_SCENES, session } from './state/session'
 
 function subscribe(listener: () => void) {
   return session.subscribe(listener)
