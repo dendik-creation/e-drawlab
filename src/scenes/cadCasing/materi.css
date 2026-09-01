@@ -1,0 +1,176 @@
+/**
+ * CAD Casing — Langkah 1 (materi). One screen: an intro, a three-up diagram
+ * row and the formula band. Values are the Figma frame's own.
+ */
+
+.cm-intro {
+  position: absolute;
+  left: 960px;
+  top: 179px;
+  translate: -50% 0;
+  width: 1490px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 31px;
+  color: var(--c-text);
+  animation: edl-fade-down var(--t-fade-down) var(--ease-out) both;
+  animation-delay: 240ms;
+}
+
+.cm-row {
+  position: absolute;
+  top: 309px;
+  display: flex;
+  gap: 21px;
+}
+
+.cm-card {
+  height: 438px;
+  padding: 21px;
+  border-radius: 23px;
+  background: #ffffff;
+  border: 1px solid rgba(12, 97, 121, 0.12);
+  box-shadow: 1px 3px 0 rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.cm-card-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 21px;
+  color: var(--c-text);
+}
+
+/** Every card's illustration panel starts at the same offset below its title, whatever the diagram's aspect ratio. */
+.cm-card-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  border-radius: 16px;
+  background: var(--c-page);
+  overflow: hidden;
+}
+
+.cm-card-panel img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cm-card-caption {
+  margin: 12px 0 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11.5px;
+  line-height: 16px;
+  color: #66878e;
+}
+
+.cm-card-body {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13.5px;
+  line-height: 20px;
+  color: #3d4a4d;
+}
+
+/* Quick staggered pop-in, matching the canvas build's card entrance. */
+.edl-pop-in {
+  animation: edl-pop-in 260ms var(--ease-back-out) both;
+}
+
+@keyframes edl-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ----------------------------------------------------- formula band */
+
+.cm-formula {
+  position: absolute;
+  top: 768px;
+  height: 135px;
+  padding: 17px 28px;
+  border-radius: 21px;
+  background: var(--c-badge-fill);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 11px;
+  animation: edl-pop-in 260ms var(--ease-back-out) both;
+}
+
+.cm-formula-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 11px;
+}
+
+.cm-formula-row[data-divided] {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cm-formula-label {
+  /* The canvas version placed the chips at a fixed 150px offset and let a
+     longer label run into that space rather than wrapping. */
+  min-width: 150px;
+  flex: none;
+  white-space: nowrap;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 17px;
+  color: #fddc6c;
+}
+
+.cm-formula-equals {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--c-badge-text);
+}
+
+.cm-formula-term {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cm-formula-plus {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: #fddc6c;
+}
+
+.cm-formula-chip {
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.12);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--c-badge-text);
+  white-space: nowrap;
+}
+
+.cm-footer {
+  position: absolute;
+  left: 1630px;
+  top: 972px;
+}
