@@ -218,7 +218,7 @@ function QuestionCard({
         <div className="eval-card-badge">{index + 1}</div>
 
         {hasImage && (
-          <div className="eval-image-column">
+          <div className="eval-image-column" data-image-count={images.length}>
             {images.map((key) => (
               <img key={key} className="eval-question-image" src={textureUrl(key)} alt="" draggable={false} />
             ))}

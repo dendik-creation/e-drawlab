@@ -9,6 +9,11 @@
 .eval-root {
   position: absolute;
   inset: 0;
+  /* Every evaluation is composed in the 1920 × 1080 design viewport. This
+     final guard prevents an unusually tall question from painting over the
+     browser edge or another scene layer. */
+  max-height: 1080px;
+  overflow: clip;
 }
 
 .eval-side-art {
@@ -147,6 +152,7 @@
   left: 160px;
   top: 176px;
   width: 1600px;
+  max-height: calc(1080px - 176px);
 }
 
 .eval-progress-label {
@@ -174,9 +180,9 @@
 
 .eval-card {
   position: relative;
-  margin-top: 22px;
+  margin-top: 18px;
   box-sizing: border-box;
-  padding: 44px 44px 34px;
+  padding: 32px 36px 28px;
   border-radius: 24px;
   background: #ffffff;
   border: 2px solid rgba(43, 144, 159, 0.35);
@@ -187,7 +193,7 @@
 .eval-card[data-with-image] {
   display: grid;
   grid-template-columns: 42fr 58fr;
-  gap: 44px;
+  gap: 32px;
 }
 
 /** Number badge straddling the card's top-left corner. */
@@ -215,19 +221,29 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 14px;
-  min-height: 340px;
-  padding: 18px;
+  height: 300px;
+  min-height: 0;
+  gap: 12px;
+  padding: 14px;
   box-sizing: border-box;
   border-radius: 16px;
   background: #faf6ea;
   border: 2px solid rgba(43, 144, 159, 0.25);
+  overflow: hidden;
+}
+
+/* A comparison question may show two diagrams. They share a deliberately
+   smaller, fixed image area so the answer and next action stay in view. */
+.eval-image-column[data-image-count='2'] {
+  height: 330px;
 }
 
 .eval-question-image {
   display: block;
+  flex: 1 1 0;
   width: 100%;
-  max-height: 440px;
+  height: 0;
+  max-height: none;
   object-fit: contain;
   min-height: 0;
 }
@@ -238,11 +254,11 @@
 }
 
 .eval-question-text {
-  margin: 0 0 22px;
+  margin: 0 0 16px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 21px;
+  line-height: 28px;
   color: var(--c-text);
 }
 
@@ -256,7 +272,7 @@
 
 .eval-options {
   display: grid;
-  gap: 16px 22px;
+  gap: 12px 18px;
 }
 
 .eval-options[data-layout='grid'] {
@@ -280,9 +296,9 @@
 .eval-option {
   display: flex;
   align-items: center;
-  gap: 18px;
-  min-height: 82px;
-  padding: 16px 22px;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 18px;
   border-radius: 26px;
   background: #ffffff;
   border: 2px solid rgba(12, 97, 121, 0.3);
@@ -304,8 +320,8 @@
 }
 
 .eval-option-badge {
-  flex: 0 0 46px;
-  height: 46px;
+  flex: 0 0 42px;
+  height: 42px;
   border-radius: 50%;
   border: 2px solid rgba(12, 97, 121, 0.6);
   font-family: var(--font-heading);
@@ -320,8 +336,8 @@
 .eval-option-text {
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 17px;
+  line-height: 21px;
   color: var(--c-text);
 }
 
@@ -369,8 +385,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
-  margin-top: 28px;
+  gap: 16px;
+  margin-top: 18px;
 }
 
 .eval-feedback {

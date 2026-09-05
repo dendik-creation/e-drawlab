@@ -28,6 +28,13 @@ export interface LoopHandle {
   stop(): void
 }
 
+/** A stoppable decoded one-shot, used by voice lines that must not outlive their scene. */
+export interface OneShotHandle {
+  /** Decoded duration, including when playback is muted or unavailable. */
+  readonly durationMs: number
+  stop(): void
+}
+
 /** Fades shorter than this are treated as instant — a ramp that brief is inaudible and just costs scheduling. */
 const MIN_RAMP_MS = 16
 
@@ -216,9 +223,15 @@ export class AudioEngine {
 
   /** Fires a decoded one-shot. Returns its length in ms, or 0 when it is not loaded. */
   playOneShot(key: string, volume: number): number {
+    return this.playOneShotHandle(key, volume).durationMs
+  }
+
+  /** Fires a decoded one-shot and returns a handle for callers that need to cancel it. */
+  playOneShotHandle(key: string, volume: number): OneShotHandle {
     const ctx = this.ensureContext()
     const buffer = this.buffers.get(key)
-    if (!ctx || !buffer || volume <= 0) return buffer ? buffer.duration * 1000 : 0
+    const durationMs = buffer ? buffer.duration * 1000 : 0
+    if (!ctx || !buffer || volume <= 0) return { durationMs, stop: () => {} }
 
     const source = ctx.createBufferSource()
     const gain = ctx.createGain()
@@ -227,7 +240,21 @@ export class AudioEngine {
     source.connect(gain).connect(ctx.destination)
     source.start()
 
-    return buffer.duration * 1000
+    let stopped = false
+    return {
+      durationMs,
+      stop: () => {
+        if (stopped) return
+        stopped = true
+        try {
+          source.stop()
+        } catch {
+          // The source may already have ended naturally.
+        }
+        source.disconnect()
+        gain.disconnect()
+      },
+    }
   }
 
   /**

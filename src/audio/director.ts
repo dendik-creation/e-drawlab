@@ -3,7 +3,7 @@ import { session } from '../state/session'
 import { EventBus } from '../state/eventBus'
 import { AUDIO_ASSETS, AUDIO_PROFILES, SFX, resolveAudioUrls } from './manifest'
 import type { AudioLayer, AudioProfileKey, MusicKey, AmbienceKey, SfxKey } from './manifest'
-import { engine, type LoopHandle } from './engine'
+import { engine, type LoopHandle, type OneShotHandle } from './engine'
 
 const CROSSFADE_DURATION = 900
 /** Ducking the same track between contexts should feel like a level change, not a cut. */
@@ -12,6 +12,11 @@ const DUCK_DURATION = 600
 interface LayerTarget {
   key: string
   volume: number
+}
+
+interface ActiveVoiceLine {
+  handle: OneShotHandle
+  completionTimer: number
 }
 
 /**
@@ -32,6 +37,7 @@ class AudioDirector {
   private profile: AudioProfileKey = 'silent'
   private music: LoopHandle | null = null
   private ambience: LoopHandle | null = null
+  private voiceLines = new Map<SfxKey, ActiveVoiceLine>()
   private warned = new Set<string>()
   private attached = false
   private settingsBound = false
@@ -64,6 +70,7 @@ class AudioDirector {
 
   stop() {
     this.attached = false
+    this.stopAllVoiceLines()
     this.music?.stop()
     this.ambience?.stop()
     this.music = null
@@ -142,17 +149,39 @@ class AudioDirector {
    * missing-asset branch.
    */
   playVoiceLine(key: SfxKey, onComplete?: () => void): number {
+    // A voice line is scene-owned: restarting the same one replaces the old
+    // instance instead of layering two identical narrations.
+    this.stopVoiceLine(key)
+
     if (!engine.isUnlocked || !engine.has(key)) {
       if (!engine.has(key)) this.warnMissing(key, SFX[key].file)
       onComplete?.()
       return 0
     }
 
-    const durationMs = engine.playOneShot(key, settings.get().sfxVolume * this.muteFactor())
-    if (durationMs > 0) window.setTimeout(() => onComplete?.(), durationMs)
+    const handle = engine.playOneShotHandle(key, settings.get().sfxVolume * this.muteFactor())
+    const durationMs = handle.durationMs
+    if (durationMs > 0) {
+      const active: ActiveVoiceLine = { handle, completionTimer: 0 }
+      active.completionTimer = window.setTimeout(() => {
+        if (this.voiceLines.get(key) !== active) return
+        this.voiceLines.delete(key)
+        onComplete?.()
+      }, durationMs)
+      this.voiceLines.set(key, active)
+    }
     else onComplete?.()
 
     return durationMs
+  }
+
+  /** Stops a voice line immediately and prevents its stale completion callback from running. */
+  stopVoiceLine(key: SfxKey) {
+    const active = this.voiceLines.get(key)
+    if (!active) return
+    window.clearTimeout(active.completionTimer)
+    active.handle.stop()
+    this.voiceLines.delete(key)
   }
 
   /**
@@ -174,6 +203,14 @@ class AudioDirector {
     const target = AUDIO_PROFILES[this.profile] as { music?: { key: MusicKey; volume: number } }
     if (!target.music) return 0
     return target.music.volume * settings.get().musicVolume * this.muteFactor()
+  }
+
+  private stopAllVoiceLines() {
+    this.voiceLines.forEach((active) => {
+      window.clearTimeout(active.completionTimer)
+      active.handle.stop()
+    })
+    this.voiceLines.clear()
   }
 
   /**

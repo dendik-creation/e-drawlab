@@ -41,7 +41,6 @@ export const HOME_ART = {
 export const MOUTH_FRAMES = [
   { src: mascotMouth1Url, x: 1382.4331, y: 577.65, width: 50.3657, height: 26.7431 },
   { src: mascotMouth2Url, x: 1389.5085, y: 570.54, width: 44.1135, height: 34.5587 },
-  { src: mascotMouth3Url, x: 1387.04, y: 568.2236, width: 47.7795, height: 33.3701 },
 ] as const
 
 export const LOGO_BOX = { x: 213.74, y: 1.1, width: 707.45, height: 239.75 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { audio } from '../../audio/director'
 import { session } from '../../state/session'
-import { isMenuCompleted } from '../../state/progress'
+import { isMenuCompleted, isMenuUnlocked } from '../../state/progress'
 import { settings, toggleMute } from '../../state/settings'
 import { DesignFrame } from '../../ui/stage/StageRoot'
 import { useStageBounds } from '../../ui/stage/useStage'
@@ -69,7 +69,14 @@ export default function HomeScene({ navigate }: SceneProps) {
       setTalkingForMs(durationMs)
     }, MASCOT_ENTER_DELAY + MASCOT_ENTER_DURATION)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      // The greeting is a Home-only one-shot. Cancelling it here also clears
+      // its delayed music restore, so a later Home visit starts one fresh
+      // narration rather than layering over an orphaned one.
+      audio.stopVoiceLine('dubbingGreeting')
+      audio.restoreMusic(0)
+    }
   }, [])
 
   const exitTo = useCallback((action: HomeMenuAction) => {
@@ -116,35 +123,40 @@ export default function HomeScene({ navigate }: SceneProps) {
             </div>
           </BubbleItem>
 
-          {MENU_ITEMS.map((item, index) => (
-            <BubbleItem key={item.action} index={2 + index} box={{ x: item.x, y: item.y, w: item.width, h: item.height }}>
-              <Pressable
-                className="home-menu-item"
-                disabled={exiting}
-                ariaLabel={item.action}
-                onPress={() => exitTo(item.action)}
-              >
-                <img className="edl-contain" src={item.src} alt="" draggable={false} />
-                {/* Rides inside the button rather than beside it, so it
-                    inherits every transform the button gets — a badge that
-                    scales on its own schedule reads as pasted on. */}
-                {isMenuCompleted(item.action) && (
-                  <img
-                    className="home-menu-badge"
-                    src={HOME_ART.badge}
-                    alt="Sudah dipelajari"
-                    draggable={false}
-                    style={{
-                      left: item.width - BADGE.insetX - BADGE.size / 2,
-                      top: BADGE.insetY - BADGE.size / 2,
-                      width: BADGE.size,
-                      height: BADGE.size,
-                    }}
-                  />
-                )}
-              </Pressable>
-            </BubbleItem>
-          ))}
+          {MENU_ITEMS.map((item, index) => {
+            const locked = !isMenuUnlocked(item.action)
+
+            return (
+              <BubbleItem key={item.action} index={2 + index} box={{ x: item.x, y: item.y, w: item.width, h: item.height }}>
+                <Pressable
+                  className={locked ? 'home-menu-item is-locked' : 'home-menu-item'}
+                  disabled={exiting || locked}
+                  ariaLabel={locked ? `${item.action} terkunci` : item.action}
+                  onPress={() => exitTo(item.action)}
+                >
+                  <img className="edl-contain" src={item.src} alt="" draggable={false} />
+                  {locked && <LockedMenuOverlay />}
+                  {/* Rides inside the button rather than beside it, so it
+                      inherits every transform the button gets — a badge that
+                      scales on its own schedule reads as pasted on. */}
+                  {isMenuCompleted(item.action) && (
+                    <img
+                      className="home-menu-badge"
+                      src={HOME_ART.badge}
+                      alt="Sudah dipelajari"
+                      draggable={false}
+                      style={{
+                        left: item.width - BADGE.insetX - BADGE.size / 2,
+                        top: BADGE.insetY - BADGE.size / 2,
+                        width: BADGE.size,
+                        height: BADGE.size,
+                      }}
+                    />
+                  )}
+                </Pressable>
+              </BubbleItem>
+            )
+          })}
         </BubbleStage>
 
         <div
@@ -199,5 +211,18 @@ export default function HomeScene({ navigate }: SceneProps) {
         </div>
       </DesignFrame>
     </>
+  )
+}
+
+/** Visual-only lock; the disabled native button keeps locked levels non-interactive. */
+function LockedMenuOverlay() {
+  return (
+    <span className="home-menu-lock" aria-hidden="true">
+      <svg viewBox="0 0 48 56" focusable="false">
+        <path d="M13 24v-8a11 11 0 0 1 22 0v8" />
+        <rect x="7" y="23" width="34" height="27" rx="4" />
+        <path d="M24 33v8" />
+      </svg>
+    </span>
   )
 }

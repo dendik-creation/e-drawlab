@@ -20,6 +20,41 @@
   height: 100%;
 }
 
+/** A muted scrim keeps the original menu artwork recognisable while making its locked state unambiguous. */
+.home-menu-item.is-locked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: rgb(14 28 49 / 52%);
+}
+
+.home-menu-lock {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border: 3px solid rgb(255 255 255 / 72%);
+  border-radius: 50%;
+  background: rgb(15 41 71 / 88%);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
+  transform: translate(-50%, -50%);
+}
+
+.home-menu-lock svg {
+  width: 38px;
+  height: 44px;
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
 /**
  * "Sudah dipelajari" badge, straddling the button's top-right corner. Inside
  * the button rather than beside it, so it inherits the hover and press
@@ -27,6 +62,7 @@
  */
 .home-menu-badge {
   position: absolute;
+  z-index: 2;
   object-fit: contain;
 }
 
