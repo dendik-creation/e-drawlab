@@ -18,7 +18,7 @@ const PROFILE_ROWS: { label: string; value: string }[] = [
   { label: 'Nama', value: DEVELOPER_PROFILE.nama },
   { label: 'Mata Pelajaran', value: DEVELOPER_PROFILE.mataPelajaran },
   { label: 'Instansi', value: DEVELOPER_PROFILE.instansi },
-  { label: 'Surel', value: DEVELOPER_PROFILE.surel },
+  { label: 'Email', value: DEVELOPER_PROFILE.email },
   { label: 'Tahun Pembuatan', value: DEVELOPER_PROFILE.tahunPembuatan },
 ]
 
