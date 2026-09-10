@@ -1,0 +1,129 @@
+/**
+ * Yes/no confirm modal. Same scale + fade vocabulary as the bubble entrance
+ * (`edl-bubble-in`/`out` in motion.css), just centred on a dimmed backdrop
+ * instead of anchored to a design-space box.
+ */
+
+.edl-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(14 28 49 / 55%);
+  animation: edl-dialog-backdrop-in var(--t-fade-down) var(--ease-out) both;
+}
+
+.edl-dialog-backdrop.is-closing {
+  animation-name: edl-dialog-backdrop-out;
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-in-out);
+}
+
+@keyframes edl-dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes edl-dialog-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.edl-dialog {
+  width: 480px;
+  padding: 32px 36px;
+  border-radius: 24px;
+  background: var(--c-page);
+  border: 1px solid var(--c-card-edge);
+  box-shadow: 0 16px 0 rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  text-align: center;
+  animation: edl-dialog-in 260ms var(--ease-back-out) both;
+}
+
+.edl-dialog.is-closing {
+  animation: edl-dialog-out 200ms var(--ease-back-in) both;
+}
+
+@keyframes edl-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes edl-dialog-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+.edl-dialog-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 26px;
+  color: var(--c-text);
+}
+
+.edl-dialog-message {
+  margin: 12px 0 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--c-caption);
+}
+
+.edl-dialog-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.edl-dialog-btn {
+  flex: 1;
+}
+
+.edl-dialog-btn span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 58px;
+  border-radius: 16px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 17px;
+  white-space: nowrap;
+}
+
+.edl-dialog-btn.is-confirm span {
+  background: var(--c-primary);
+  border: 2px solid var(--c-primary-edge);
+  color: #ffffff;
+}
+
+.edl-dialog-btn.is-cancel span {
+  background: #ffffff;
+  border: 2px solid var(--c-border);
+  color: var(--c-text);
+}

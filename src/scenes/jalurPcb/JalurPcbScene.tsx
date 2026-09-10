@@ -47,6 +47,20 @@ export default function JalurPcbScene({ navigate }: SceneProps) {
     audio.setProfile('menu')
   }, [])
 
+  /**
+   * Langkah 1's theory voice-over, and Langkah 2's simulator voice-over. The
+   * cleanup force-stops whichever one is still running the moment the step
+   * (or the whole scene, on unmount) changes, so it never bleeds into the
+   * next step or the next scene.
+   */
+  useEffect(() => {
+    const key = step === 'materi' ? 'keteranganJalurPcb' : step === 'simulasi' ? 'keteranganSimulatorJalurPcb' : null
+    if (key) audio.playVoiceLine(key)
+    return () => {
+      if (key) audio.stopVoiceLine(key)
+    }
+  }, [step])
+
   const goToStep = useCallback(
     (next: Step) => {
       if (swapping || exiting) return

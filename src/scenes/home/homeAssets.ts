@@ -1,4 +1,5 @@
 import type { SceneKey } from '../../app/scenes'
+import type { SfxKey } from '../../audio/manifest'
 import homeBgUrl from '../../../assets/images/05_backgrounds/home_bg.webp'
 import mainLogoUrl from '../../../assets/images/00_identity/main_logo.webp'
 import mascotUrl from '../../../assets/images/00_identity/mascot.webp'
@@ -55,7 +56,14 @@ export const BGM_OFF_SIZE = { width: 157, height: 70 }
 export const HUD_INSET_X = 1920 - (BGM_BOX.x + BGM_BOX.width / 2)
 export const HUD_INSET_Y = BGM_BOX.y + BGM_BOX.height / 2
 
-export type HomeMenuAction = 'desain-skema' | 'jalur-pcb' | 'cad-casing' | 'evaluasi-akhir' | 'keluar'
+/**
+ * "Tentang" HUD button — new chrome, no Figma slice of its own — sits on the
+ * same row as the BGM toggle, far enough left of it that neither pill
+ * overlaps the other across the BGM art's on/off size change.
+ */
+export const TENTANG_HUD_INSET_X = HUD_INSET_X + 210
+
+export type HomeMenuAction = 'desain-skema' | 'jalur-pcb' | 'cad-casing' | 'evaluasi-akhir' | 'keluar' | 'tentang'
 
 export interface HomeMenuItem {
   action: HomeMenuAction
@@ -81,6 +89,16 @@ export const MENU_DESTINATION: Partial<Record<HomeMenuAction, SceneKey>> = {
   'jalur-pcb': 'JalurPcb',
   'cad-casing': 'CadCasing',
   'evaluasi-akhir': 'EvaluasiAkhir',
+  tentang: 'Tentang',
+}
+
+/** Each menu tile's voice-over — desktop hover, mobile tap (see HomeScene). */
+export const MENU_VOICE_LINE: Partial<Record<HomeMenuAction, SfxKey>> = {
+  'desain-skema': 'menuDesainSkema',
+  'jalur-pcb': 'menuJalurPcb',
+  'cad-casing': 'menuCadCasing',
+  'evaluasi-akhir': 'menuEvaluasiUmpanBalik',
+  keluar: 'menuKeluar',
 }
 
 /** "Sudah dipelajari" badge — straddles a completed menu button's top-right corner. */

@@ -354,7 +354,18 @@ function ResultCard({
     // rather than leaving the quiz track running under the results card.
     audio.setProfile('silent')
     audio.play('completeEvaluation')
+
+    // Only Evaluasi Akhir carries a passGrade — the per-journey quizzes keep
+    // their plain completeEvaluation chime instead of a spoken verdict.
+    const voiceKey = config.passGrade ? (result.passed ? 'nilaiBaik' : 'nilaiKurang') : null
+    if (voiceKey) audio.playVoiceLine(voiceKey)
     config.onComplete?.({ passed: result.passed, score, total })
+
+    // Force-stops the verdict line if the learner leaves (Ke Beranda / Coba
+    // Lagi) before it finishes, so it never bleeds into the next scene.
+    return () => {
+      if (voiceKey) audio.stopVoiceLine(voiceKey)
+    }
     // Fires once when the card appears, which is what "quiz finished" means.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

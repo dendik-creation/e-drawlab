@@ -19,6 +19,8 @@ export interface PressableProps {
   disabled?: boolean
   /** Sound fired on press. `null` for a button whose action makes its own sound. */
   pressSound?: 'click' | null
+  /** Fires alongside the built-in hover blip — a menu tile's own voice-over, say. Desktop-only by nature: touch has no real hover. */
+  onHover?: () => void
   className?: string
   style?: CSSProperties
   ariaLabel?: string
@@ -29,6 +31,7 @@ export default function Pressable({
   onPress,
   disabled = false,
   pressSound = 'click',
+  onHover,
   className,
   style,
   ariaLabel,
@@ -65,7 +68,9 @@ export default function Pressable({
       disabled={disabled}
       style={style}
       onPointerEnter={() => {
-        if (!disabled) audio.play('hover')
+        if (disabled) return
+        audio.play('hover')
+        onHover?.()
       }}
       onPointerDown={(event) => {
         if (disabled) return

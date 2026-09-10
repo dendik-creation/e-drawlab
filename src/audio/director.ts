@@ -8,6 +8,8 @@ import { engine, type LoopHandle, type OneShotHandle } from './engine'
 const CROSSFADE_DURATION = 900
 /** Ducking the same track between contexts should feel like a level change, not a cut. */
 const DUCK_DURATION = 600
+/** BGM fraction while any voice_offer line is playing — audible underneath, never fighting it. */
+const VOICE_DUCK_FACTOR = 0.2
 
 interface LayerTarget {
   key: string
@@ -38,6 +40,8 @@ class AudioDirector {
   private music: LoopHandle | null = null
   private ambience: LoopHandle | null = null
   private voiceLines = new Map<SfxKey, ActiveVoiceLine>()
+  /** How many voice lines are currently ducking the music — restored only once this drops back to 0. */
+  private activeVoiceCount = 0
   private warned = new Set<string>()
   private attached = false
   private settingsBound = false
@@ -142,11 +146,18 @@ class AudioDirector {
 
   /**
    * Fires a one-shot voice line and reports back its length in milliseconds,
-   * for a caller that needs to choreograph something else (a lip-sync loop,
-   * ducking the music) against it — `play()`'s fire-and-forget shape has no
-   * way to report that. `onComplete` always fires, even when the file hasn't
-   * been produced yet (0ms), so a caller's cleanup doesn't need its own
-   * missing-asset branch.
+   * for a caller that needs to choreograph something else (a lip-sync loop)
+   * against it — `play()`'s fire-and-forget shape has no way to report that.
+   * `onComplete` always fires, even when the file hasn't been produced yet
+   * (0ms), so a caller's cleanup doesn't need its own missing-asset branch.
+   *
+   * The music ducks automatically for as long as any voice line is playing,
+   * and un-ducks once the last one finishes or is stopped — callers never
+   * touch `duckMusic`/`restoreMusic` themselves for this.
+   *
+   * A voice line is always scene-owned: a caller that starts one must stop it
+   * (`stopVoiceLine`) from its own unmount/step-change cleanup, so a forced
+   * navigation away never leaves it playing under the next scene.
    */
   playVoiceLine(key: SfxKey, onComplete?: () => void): number {
     // A voice line is scene-owned: restarting the same one replaces the old
@@ -162,10 +173,12 @@ class AudioDirector {
     const handle = engine.playOneShotHandle(key, settings.get().sfxVolume * this.muteFactor())
     const durationMs = handle.durationMs
     if (durationMs > 0) {
+      this.beginVoiceDuck()
       const active: ActiveVoiceLine = { handle, completionTimer: 0 }
       active.completionTimer = window.setTimeout(() => {
         if (this.voiceLines.get(key) !== active) return
         this.voiceLines.delete(key)
+        this.endVoiceDuck()
         onComplete?.()
       }, durationMs)
       this.voiceLines.set(key, active)
@@ -175,13 +188,25 @@ class AudioDirector {
     return durationMs
   }
 
-  /** Stops a voice line immediately and prevents its stale completion callback from running. */
+  /** Stops a voice line immediately, prevents its stale completion callback from running, and un-ducks the music if nothing else is still speaking. */
   stopVoiceLine(key: SfxKey) {
     const active = this.voiceLines.get(key)
     if (!active) return
     window.clearTimeout(active.completionTimer)
     active.handle.stop()
     this.voiceLines.delete(key)
+    this.endVoiceDuck()
+  }
+
+  private beginVoiceDuck() {
+    this.activeVoiceCount += 1
+    if (this.activeVoiceCount === 1) this.duckMusic(VOICE_DUCK_FACTOR)
+  }
+
+  private endVoiceDuck() {
+    if (this.activeVoiceCount === 0) return
+    this.activeVoiceCount -= 1
+    if (this.activeVoiceCount === 0) this.restoreMusic()
   }
 
   /**
@@ -211,6 +236,9 @@ class AudioDirector {
       active.handle.stop()
     })
     this.voiceLines.clear()
+    // Not routed through endVoiceDuck: stop() tears down the music layer
+    // right after this runs, so there is nothing left to un-duck.
+    this.activeVoiceCount = 0
   }
 
   /**

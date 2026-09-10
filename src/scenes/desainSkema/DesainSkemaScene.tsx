@@ -53,6 +53,20 @@ export default function DesainSkemaScene({ navigate }: SceneProps) {
     audio.setProfile('menu')
   }, [step])
 
+  /**
+   * Langkah 1's theory voice-over, and Langkah 2's simulation voice-over on
+   * first entry. The cleanup force-stops whichever one is still running the
+   * moment the step (or the whole scene, on unmount) changes, so it never
+   * bleeds into the next step or the next scene.
+   */
+  useEffect(() => {
+    const key = step === 'materi' ? 'keteranganDesainSkema' : step === 'level-1' ? 'keteranganSimulasiDesain' : null
+    if (key) audio.playVoiceLine(key)
+    return () => {
+      if (key) audio.stopVoiceLine(key)
+    }
+  }, [step])
+
   const goToStep = useCallback(
     (next: Step) => {
       if (swapping || exiting) return

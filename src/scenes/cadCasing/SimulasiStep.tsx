@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { ListChecks } from 'lucide-react'
 import { DEFAULT_INPUT, RANGES, computeCasing, type CasingInput } from '../../domain/cadCasing/casingModel'
 import ActionButton from '../../ui/ActionButton'
 import SimSlider from '../../ui/SimSlider'
@@ -23,6 +24,16 @@ import './simulasi.css'
 
 const LEFT_PANEL = { x: 206, y: 271, width: 649, height: 580 }
 const RIGHT_PANEL = { x: 871, y: 271, width: 844, height: 580 }
+
+/** Spans both panels below, in the gap left under the step badge. */
+const INSTRUCTION_CARD = { x: LEFT_PANEL.x, y: 150, width: RIGHT_PANEL.x + RIGHT_PANEL.width - LEFT_PANEL.x }
+
+const INSTRUCTION_STEPS = [
+  'Atur Ukuran PCB sumbu X, Y, Z dengan menggeser slider Panjang, Lebar, dan Tebal Papan.',
+  'Tentukan Parameter Casing dengan menyesuaikan Celah Samping dan Tebal Dinding.',
+  'Atur Komponen & Pilar dengan menentukan Tinggi Komponen, Tinggi Pilar, dan Celah Bebas Atas.',
+  'Cek Tampilan 3D menggunakan tombol sudut pandang Atas, Samping, Depan, Isometrik atau geser gambar secara bebas.',
+]
 
 const CAMERA_ROW_Y = 22
 const CAMERA_ROW_HEIGHT = 46
@@ -132,6 +143,24 @@ export default function SimulasiStep({ onNext }: { onNext: () => void }) {
 
   return (
     <>
+      <section
+        className="cs-instructions"
+        style={{ left: INSTRUCTION_CARD.x, top: INSTRUCTION_CARD.y, width: INSTRUCTION_CARD.width }}
+      >
+        <header className="cs-instructions-head">
+          <ListChecks className="cs-instructions-icon" size={18} strokeWidth={2.25} aria-hidden />
+          <h3 className="cs-instructions-title">Berikut Langkah Simulasi Casing PCB yang Ideal</h3>
+        </header>
+        <ol className="cs-instructions-list">
+          {INSTRUCTION_STEPS.map((text, index) => (
+            <li key={text} className="cs-instructions-item">
+              <span className="cs-instructions-index">{index + 1}</span>
+              <span>{text}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section className="cs-panel cs-left" style={{ left: LEFT_PANEL.x, top: LEFT_PANEL.y, width: LEFT_PANEL.width, height: LEFT_PANEL.height }}>
         <header className="cs-left-head">
           <img className="cs-left-icon" src={iconParameterUrl} alt="" draggable={false} />

@@ -5,9 +5,10 @@ import EvaluasiAkhirScene from '../scenes/evaluation/EvaluasiAkhirScene'
 import JalurPcbScene from '../scenes/jalurPcb/JalurPcbScene'
 import CadCasingScene from '../scenes/cadCasing/CadCasingScene'
 import DesainSkemaScene from '../scenes/desainSkema/DesainSkemaScene'
+import TentangScene from '../scenes/tentang/TentangScene'
 
 /** Every screen in the app, by the key both renderers agree on. */
-export type SceneKey = 'Splash' | 'Home' | 'DesainSkema' | 'JalurPcb' | 'CadCasing' | 'EvaluasiAkhir'
+export type SceneKey = 'Splash' | 'Home' | 'DesainSkema' | 'JalurPcb' | 'CadCasing' | 'EvaluasiAkhir' | 'Tentang'
 
 export interface SceneProps {
   /** Leaves for another screen. The router decides whether that screen is React or Phaser. */
@@ -22,5 +23,6 @@ export const REACT_SCENES: Record<SceneKey, ComponentType<SceneProps>> = {
   JalurPcb: JalurPcbScene,
   CadCasing: CadCasingScene,
   DesainSkema: DesainSkemaScene,
+  Tentang: TentangScene,
 }
 

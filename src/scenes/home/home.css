@@ -147,6 +147,63 @@
   object-fit: contain;
 }
 
+/**
+ * "Tentang" is deliberately the same visual weight as the BGM switch beside
+ * it: a teal control with the application's medium, soft-corner radius rather
+ * than an unrelated white pill. Its outer edge and inset icon keep the small
+ * control legible over every area of the illustrated home background.
+ */
+.home-tentang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 151px;
+  height: 66px;
+  padding: 0 15px 0 9px;
+  box-sizing: border-box;
+  border: 2px solid var(--c-primary-edge);
+  border-radius: 18px;
+  background: var(--c-primary);
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 26%),
+    inset 0 -3px 0 rgb(12 97 121 / 24%),
+    0 3px 0 rgb(12 97 121 / 38%);
+  color: var(--c-badge-text);
+  font-family: var(--font-heading);
+  font-weight: 750;
+  font-size: 19px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-tentang-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 44%);
+  border-radius: 12px;
+  background: rgb(250 243 231 / 24%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 32%),
+    0 1px 0 rgb(12 97 121 / 28%);
+}
+
+.home-tentang:disabled {
+  border-color: var(--c-disabled-edge);
+  background: var(--c-disabled);
+  box-shadow: none;
+  color: var(--c-text-muted);
+}
+
+.home-tentang:disabled .home-tentang-icon {
+  border-color: rgb(122 138 144 / 38%);
+  background: rgb(255 255 255 / 28%);
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home-logo.is-idle {
     animation: none;

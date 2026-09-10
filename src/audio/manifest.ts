@@ -8,7 +8,7 @@
  * actually on disk, so tracks can be dropped in later with no code change, and
  * anything still missing is simply skipped at load time.
  */
-const SOUND_URLS = import.meta.glob('../../assets/sounds/*.{webm,ogg,m4a,mp3,wav}', {
+const SOUND_URLS = import.meta.glob('../../assets/sounds/**/*.{webm,ogg,m4a,mp3,wav}', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -90,6 +90,29 @@ export const SFX = {
   statusDanger: { file: 'status-danger.ogg', layer: 'sfx' },
   /** Home's mascot greeting voice line — lip-synced to the mouth-flap cycle, ducks the BGM for its duration. */
   dubbingGreeting: { file: 'dubbing_greeting.ogg', layer: 'sfx' },
+
+  /** Langkah 1 (materi, no simulasi) voice-over per journey — fired when that step's page opens. */
+  keteranganDesainSkema: { file: 'keterangan_desain_skema.ogg', layer: 'sfx' },
+  keteranganJalurPcb: { file: 'keterangan_jalur_pcb.ogg', layer: 'sfx' },
+  keteranganCasing: { file: 'keterangan_casing.ogg', layer: 'sfx' },
+  /** Langkah 2 (simulasi) voice-over per journey — fired when that step's page opens. */
+  keteranganSimulasiDesain: { file: 'keterangan_simulasi_desain.ogg', layer: 'sfx' },
+  keteranganSimulatorJalurPcb: { file: 'keterangan_simulator_jalur_pcb.ogg', layer: 'sfx' },
+  keteranganSimulatorCasing: { file: 'keterangan_simulator_casing.ogg', layer: 'sfx' },
+
+  /** Home menu voice-over — hover on desktop, tap on mobile. See `MENU_VOICE_LINE` in homeAssets.ts. */
+  menuDesainSkema: { file: 'menu_desain_skema.ogg', layer: 'sfx' },
+  menuJalurPcb: { file: 'menu_jalur_pcb.ogg', layer: 'sfx' },
+  menuCadCasing: { file: 'menu_cad_casing.ogg', layer: 'sfx' },
+  menuEvaluasiUmpanBalik: { file: 'menu_evaluasi_umpan_balik.ogg', layer: 'sfx' },
+  menuKeluar: { file: 'menu_keluar.ogg', layer: 'sfx' },
+  /** Registered for the register's sake — no menu item routes to a kuis or tentang screen yet. */
+  menuKuis: { file: 'menu_kuis.ogg', layer: 'sfx' },
+  menuTentang: { file: 'menu_tentang.ogg', layer: 'sfx' },
+
+  /** Evaluasi Akhir results — passed vs. below the passing grade. See `EvaluationView`'s `ResultCard`. */
+  nilaiBaik: { file: 'nilai_baik.ogg', layer: 'sfx' },
+  nilaiKurang: { file: 'nilai_kurang.ogg', layer: 'sfx' },
 } as const satisfies Record<string, AudioAsset>
 
 /** Looping score. One track per context, cross-faded or ducked between scenes. */
