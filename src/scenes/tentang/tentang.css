@@ -7,7 +7,9 @@
   position: absolute;
   left: 174px;
   top: 168px;
-  width: 1572px;
+  /* Narrower than the frame's full centred width, leaving a clear pocket at
+     the bottom-right for the mascot instead of it having to overlap the card. */
+  width: 1420px;
   height: 850px;
   overflow-y: auto;
   padding: 36px 48px 44px;
@@ -16,6 +18,21 @@
   border: 1px solid rgba(12, 97, 121, 0.12);
   box-shadow: 1px 3px 0 rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
+}
+
+/**
+ * Brand mascot, anchored to the frame's bottom-right corner in the pocket the
+ * card leaves clear. Laid out at the art's native size (width/height set
+ * inline from `MASCOT_BOX`) and scaled down from that corner, so `MascotMouth`
+ * keeps drawing at its authored coordinates instead of needing a rescaled copy.
+ */
+.tg-mascot {
+  position: absolute;
+  right: 32px;
+  bottom: 20px;
+  transform-origin: bottom right;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 16px rgba(12, 97, 121, 0.18));
 }
 
 .tg-section-title {

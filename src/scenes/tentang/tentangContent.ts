@@ -1,16 +1,16 @@
 /**
  * Tentang scene copy — kept apart from the component so these can be edited
- * without touching any layout code. `DEVELOPER_PROFILE` and `DAFTAR_PUSTAKA`
- * are placeholders: swap them for the real credits/citations whenever
- * they're ready.
+ * without touching any layout code.
  */
 
 export const DEVELOPER_PROFILE = {
-  nama: 'Orang Developer',
-  mataPelajaran: 'Teknik Elektronika',
-  instansi: 'Sekolahku',
-  email: 'sekolahku@sekolah.sch.id',
-  tahunPembuatan: '2026',
+  judul: 'Desain CAD Elektronika dari Skema ke Model 3D',
+  pengembang: [
+    { peran: 'Creator', nama: 'Muhamad Slamet Riyadi, S.Kom, M.Kom' },
+    { peran: 'Programmer & Desain Asset', nama: "Dendi' Setiawan" },
+  ],
+  programKeahlian: 'Teknik Elektronika',
+  instansi: 'SMK Negeri 2 Kudus',
 }
 
 export const ASET_GAMBAR =
@@ -18,6 +18,3 @@ export const ASET_GAMBAR =
 
 export const ASET_MUSIK =
   'Musik dan efek suara dalam aplikasi ini dibuat menggunakan Pixabay, Envato Elements (Free), dan Claude AI.'
-
-/** One paragraph per citation, APA-style. */
-export const DAFTAR_PUSTAKA: string[] = ['Ini daftar pustakanya (APA Format)']

@@ -6,44 +6,73 @@
  * below.
  */
 
-.jm-viewport {
+.jm-stage {
   position: absolute;
   left: 0;
   right: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* The stage disables touch gestures globally so a tap is never swallowed by
-     gesture arbitration; this region is the one place that wants them back. */
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(43, 144, 159, 0.55) rgba(102, 135, 142, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
 }
 
-.jm-viewport::-webkit-scrollbar {
-  width: 6px;
+.jm-nav-btn {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid rgba(102, 135, 142, 0.2);
+  box-shadow: 1px 3px 0 rgba(0, 0, 0, 0.06);
 }
 
-.jm-viewport::-webkit-scrollbar-track {
-  background: rgba(102, 135, 142, 0.15);
-  border-radius: 3px;
+.jm-nav-btn img {
+  filter: invert(23%) sepia(46%) saturate(1247%) hue-rotate(152deg) brightness(93%) contrast(93%);
 }
 
-.jm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(43, 144, 159, 0.55);
-  border-radius: 3px;
+.jm-nav-btn:disabled {
+  opacity: 0.35;
 }
 
-.jm-column {
+.jm-slide-frame {
+  position: relative;
+  flex: none;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 28px;
+  box-sizing: border-box;
+}
+
+.jm-slide {
   position: relative;
 }
 
-.jm-section {
+.jm-dots {
   position: absolute;
   left: 0;
   right: 0;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.jm-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(102, 135, 142, 0.28);
+}
+
+.jm-dot.is-active {
+  width: 22px;
+  border-radius: 5px;
+  background: var(--c-primary);
 }
 
 /* ------------------------------------------------------------ type */

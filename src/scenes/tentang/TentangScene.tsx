@@ -4,7 +4,10 @@ import { session } from '../../state/session'
 import { DesignFrame } from '../../ui/stage/StageRoot'
 import JourneyHeader from '../../ui/JourneyHeader'
 import type { SceneProps } from '../../app/scenes'
-import { ASET_GAMBAR, ASET_MUSIK, DAFTAR_PUSTAKA, DEVELOPER_PROFILE } from './tentangContent'
+import { ASET_GAMBAR, ASET_MUSIK, DEVELOPER_PROFILE } from './tentangContent'
+import mascotUrl from '../../../assets/images/00_identity/mascot.webp'
+import MascotMouth from '../home/MascotMouth'
+import { MASCOT_BOX } from '../home/homeAssets'
 import '../evaluation/scene.css'
 import './tentang.css'
 
@@ -14,12 +17,15 @@ import './tentang.css'
  * fade-out-on-home transition with `EvaluasiAkhirScene`.
  */
 
+/** Displayed mascot width in the bottom-right pocket; the wrapper is laid out at the art's native size and scaled down, so `MascotMouth`'s frame coordinates (authored against `MASCOT_BOX`) still land correctly. */
+const MASCOT_DISPLAY_WIDTH = 260
+const MASCOT_SCALE = MASCOT_DISPLAY_WIDTH / MASCOT_BOX.width
+
 const PROFILE_ROWS: { label: string; value: string }[] = [
-  { label: 'Nama', value: DEVELOPER_PROFILE.nama },
-  { label: 'Mata Pelajaran', value: DEVELOPER_PROFILE.mataPelajaran },
+  { label: 'Judul', value: DEVELOPER_PROFILE.judul },
+  ...DEVELOPER_PROFILE.pengembang.map((p) => ({ label: p.peran, value: p.nama })),
+  { label: 'Program Keahlian', value: DEVELOPER_PROFILE.programKeahlian },
   { label: 'Instansi', value: DEVELOPER_PROFILE.instansi },
-  { label: 'Email', value: DEVELOPER_PROFILE.email },
-  { label: 'Tahun Pembuatan', value: DEVELOPER_PROFILE.tahunPembuatan },
 ]
 
 export default function TentangScene({ navigate }: SceneProps) {
@@ -64,16 +70,15 @@ export default function TentangScene({ navigate }: SceneProps) {
               Musik
             </h3>
             <p className="tg-text">{ASET_MUSIK}</p>
-
-            <h3 className="tg-section-title" data-spaced="">
-              Daftar Pustaka
-            </h3>
-            {DAFTAR_PUSTAKA.map((entry) => (
-              <p className="tg-text tg-pustaka" key={entry}>
-                {entry}
-              </p>
-            ))}
           </section>
+
+          <div
+            className="tg-mascot"
+            style={{ width: MASCOT_BOX.width, height: MASCOT_BOX.height, transform: `scale(${MASCOT_SCALE})` }}
+          >
+            <img className="edl-contain" src={mascotUrl} alt="" draggable={false} />
+            <MascotMouth talkingForMs={0} />
+          </div>
         </div>
       </div>
     </DesignFrame>
