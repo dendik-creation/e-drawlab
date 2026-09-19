@@ -26,6 +26,8 @@ export interface JourneyHeaderProps {
   /** Omitted on the first step of a journey, and on single-step scenes. */
   onBack?: () => void
   disabled?: boolean
+  /** Moves the navigation controls beside a step's footer actions. */
+  navPlacement?: 'header' | 'footer'
   /**
    * `single` is Evaluasi Akhir's own geometry: title top-anchored higher, badge
    * lower, home icon further in — the Figma frame for a scene with no back
@@ -48,12 +50,13 @@ export default function JourneyHeader({
   onHome,
   onBack,
   disabled = false,
+  navPlacement = 'header',
   variant = 'journey',
 }: JourneyHeaderProps) {
   const muted = useSyncExternalStore(subscribeSettings, mutedSnapshot)
 
   return (
-    <div className="jh-root" data-variant={variant}>
+    <div className="jh-root" data-variant={variant} data-nav-placement={navPlacement}>
       <h1 className="jh-title">{title}</h1>
       {badge && <div className="jh-badge">{badge}</div>}
 

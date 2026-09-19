@@ -106,6 +106,7 @@ export default function DesainSkemaScene({ navigate }: SceneProps) {
           title="Desain Skema Elektronika"
           badge={badgeLabel(step)}
           disabled={disabled}
+          navPlacement={isLevel ? 'footer' : 'header'}
           onHome={goHome}
           onBack={index > 0 ? () => goToStep(STEP_ORDER[index - 1]) : undefined}
         />

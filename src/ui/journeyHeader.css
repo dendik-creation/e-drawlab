@@ -86,6 +86,20 @@
   left: 194px;
 }
 
+/* The CAD work sheets reserve their header for the title and use the space
+   below the sheet for all navigation, aligned to the Lanjut action. */
+.jh-root[data-nav-placement='footer'] .jh-nav {
+  top: 1006px;
+}
+
+.jh-root[data-nav-placement='footer'] .jh-home {
+  left: 516px;
+}
+
+.jh-root[data-nav-placement='footer'] .jh-back {
+  left: 642px;
+}
+
 .jh-nav img {
   display: block;
 }
