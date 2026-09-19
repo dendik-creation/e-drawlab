@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "perf:capture": "node scripts/perf/capture.mjs",
     "perf:bench": "node scripts/perf/bench.mjs",
-    "perf:smoke": "node scripts/perf/smoke.mjs"
+    "perf:smoke": "node scripts/perf/smoke.mjs",
+    "test:fullscreen": "npm run build && node scripts/perf/fullscreen.mjs"
   },
   "dependencies": {
     "@fontsource-variable/baloo-2": "^5.3.0",

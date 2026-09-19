@@ -41,16 +41,16 @@ export const VIEWPORTS = {
 
 const PORT = 4173
 const ORIGIN = `http://127.0.0.1:${PORT}`
+const VITE_CLI = resolve(ROOT, 'node_modules/vite/bin/vite.js')
 
 /** Serves `dist/`. Build first — this deliberately measures the production bundle, not the dev server. */
 export async function startServer() {
-  const server = spawn('bunx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+  const server = spawn(process.execPath, [VITE_CLI, 'preview', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'], {
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
-    // Own process group: `bunx` forks vite as a child, and signalling only
-    // the wrapper leaves the real server holding the port — which then makes
-    // every later run 404 against a stale working directory.
-    detached: true,
+    // Run Vite directly so this process owns the preview server on Windows
+    // as well as POSIX hosts.
+    detached: process.platform !== 'win32',
   })
 
   await new Promise((resolve, reject) => {
@@ -69,11 +69,11 @@ export async function startServer() {
   return {
     origin: ORIGIN,
     stop: () => {
-      try {
-        process.kill(-server.pid, 'SIGTERM')
-      } catch {
+      if (process.platform === 'win32') {
         server.kill('SIGTERM')
+        return
       }
+      process.kill(-server.pid, 'SIGTERM')
     },
   }
 }

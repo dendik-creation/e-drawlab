@@ -104,8 +104,8 @@ export default function SplashScene({ navigate }: SceneProps) {
     enteringRef.current = true
     setEntering(true)
 
-    // This press is the browser's autoplay unlock point and the only gesture
-    // that can grant fullscreen, so both happen here, synchronously.
+    // This click is the browser's autoplay unlock point and the gesture that
+    // can grant fullscreen. It works for touch, mouse, and keyboard input.
     enterFullscreen()
     audio.play('click')
     audio.setProfile('menu')
@@ -200,7 +200,7 @@ export default function SplashScene({ navigate }: SceneProps) {
           hitbox, so a tap anywhere enters the lab. Left out entirely while
           portrait, so a stray tap cannot slip past the rotate gate. */}
       {ready && !portrait && (
-        <button type="button" className="splash-tap-zone" aria-label="Masuk lab" onPointerDown={enterLab} />
+        <button type="button" className="splash-tap-zone" aria-label="Masuk lab" onClick={enterLab} />
       )}
     </>
   )
