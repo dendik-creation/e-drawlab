@@ -65,6 +65,7 @@ export default function HomeScene({ navigate }: SceneProps) {
   const [talkingForMs, setTalkingForMs] = useState(0)
   const [confirmExitOpen, setConfirmExitOpen] = useState(false)
   const pendingAction = useRef<HomeMenuAction | null>(null)
+  const greetingTimer = useRef<number | null>(null)
   /** Whichever menu tile's voice-over is currently playing, if any — at most one at a time. */
   const activeMenuVoice = useRef<HomeMenuAction | null>(null)
 
@@ -80,12 +81,13 @@ export default function HomeScene({ navigate }: SceneProps) {
    * while it plays is `playVoiceLine`'s own doing, not this scene's.
    */
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    greetingTimer.current = window.setTimeout(() => {
+      greetingTimer.current = null
       setTalkingForMs(audio.playVoiceLine('dubbingGreeting'))
     }, MASCOT_ENTER_DELAY + MASCOT_ENTER_DURATION)
 
     return () => {
-      window.clearTimeout(timer)
+      if (greetingTimer.current !== null) window.clearTimeout(greetingTimer.current)
       // The greeting is a Home-only one-shot; force it off on the way out so
       // it never bleeds into whatever scene comes next.
       audio.stopVoiceLine('dubbingGreeting')
@@ -102,6 +104,12 @@ export default function HomeScene({ navigate }: SceneProps) {
 
   /** Starts a menu tile's voice-over, stopping any other tile's still-running one first — only one plays at a time. */
   const playMenuVoice = useCallback((action: HomeMenuAction, voiceKey: NonNullable<(typeof MENU_VOICE_LINE)[HomeMenuAction]>) => {
+    if (greetingTimer.current !== null) {
+      window.clearTimeout(greetingTimer.current)
+      greetingTimer.current = null
+    }
+    audio.stopVoiceLine('dubbingGreeting')
+    setTalkingForMs(0)
     const previous = activeMenuVoice.current
     if (previous && previous !== action) audio.stopVoiceLine(MENU_VOICE_LINE[previous]!)
 
