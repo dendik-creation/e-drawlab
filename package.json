@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "build:offline": "tsc -b && vite build --config vite.offline.config.ts",
     "preview": "vite preview",
     "perf:capture": "node scripts/perf/capture.mjs",
     "perf:bench": "node scripts/perf/bench.mjs",

@@ -123,6 +123,8 @@ export class AudioEngine {
   private ctx: AudioContext | null = null
   private buffers = new Map<string, AudioBuffer>()
   private pending = new Map<string, Promise<AudioBuffer | null>>()
+  /** `file://` cannot fetch(), so one-shots there play through <audio> elements instead of decoded buffers. */
+  private fileSounds = new Map<string, HTMLAudioElement>()
   private unlockBound = false
   private unlocked = false
 
@@ -183,6 +185,19 @@ export class AudioEngine {
    * yet" and stay silent.
    */
   load(key: string, urls: string[]): Promise<AudioBuffer | null> {
+    if (location.protocol === 'file:') {
+      const probe = new Audio()
+      for (const url of urls) {
+        if (probe.canPlayType(`audio/${url.split('?')[0].split('.').pop()}`)) {
+          probe.src = url
+          break
+        }
+      }
+      probe.preload = 'auto'
+      if (probe.src) this.fileSounds.set(key, probe)
+      return Promise.resolve(null)
+    }
+
     const cached = this.buffers.get(key)
     if (cached) return Promise.resolve(cached)
 
@@ -218,7 +233,7 @@ export class AudioEngine {
   }
 
   has(key: string) {
-    return this.buffers.has(key)
+    return this.buffers.has(key) || this.fileSounds.has(key)
   }
 
   /** Fires a decoded one-shot. Returns its length in ms, or 0 when it is not loaded. */
@@ -228,6 +243,16 @@ export class AudioEngine {
 
   /** Fires a decoded one-shot and returns a handle for callers that need to cancel it. */
   playOneShotHandle(key: string, volume: number): OneShotHandle {
+    const fileSound = this.fileSounds.get(key)
+    if (fileSound) {
+      const durationMs = Number.isFinite(fileSound.duration) ? fileSound.duration * 1000 : 0
+      if (volume <= 0) return { durationMs, stop: () => {} }
+      const element = new Audio(fileSound.src)
+      element.volume = Math.min(1, volume)
+      void element.play().catch(() => {})
+      return { durationMs, stop: () => element.pause() }
+    }
+
     const ctx = this.ensureContext()
     const buffer = this.buffers.get(key)
     const durationMs = buffer ? buffer.duration * 1000 : 0
@@ -268,7 +293,9 @@ export class AudioEngine {
     const element = document.createElement('audio')
     element.loop = true
     element.preload = 'auto'
-    element.crossOrigin = 'anonymous'
+    // Anonymous CORS is only needed to route a cross-origin element through
+    // WebAudio; on `file://` it makes the load fail outright.
+    if (location.protocol !== 'file:') element.crossOrigin = 'anonymous'
     urls.forEach((url) => {
       const source = document.createElement('source')
       source.src = url
@@ -277,7 +304,9 @@ export class AudioEngine {
 
     const ctx = this.ensureContext()
     let gain: GainNode | null = null
-    if (ctx) {
+    // On `file://` the element is cross-origin, so a MediaElementSource connects
+    // without throwing but outputs silence. Play it directly instead.
+    if (ctx && location.protocol !== 'file:') {
       try {
         gain = ctx.createGain()
         ctx.createMediaElementSource(element).connect(gain).connect(ctx.destination)
