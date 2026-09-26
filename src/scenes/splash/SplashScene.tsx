@@ -39,7 +39,6 @@ const ENTRANCE_DURATION = 320
 
 const SUBTITLE = 'Laboratorium Maya Interaktif\nuntuk Desain CAD Elektronika'
 const HINT_LABEL = 'Ketuk dimana saja untuk melanjutkan'
-const FOOTER_LABEL = 'Untuk Siswa Kelas X SMK Program Keahlian Teknik Elektronika'
 const ROTATE_LABEL = 'Putar perangkat ke mode lanskap'
 
 function subscribePortrait(listener: () => void) {
@@ -118,15 +117,6 @@ export default function SplashScene({ navigate }: SceneProps) {
   return (
     <>
       <img className="splash-bg" src={splashBgUrl} alt="" draggable={false} />
-
-      {/* Drawn here rather than baked into splash_bg.webp so it always spans
-          the true viewport edge, flush to the bottom, at any aspect ratio.
-          Arrives with the tap gate, not during loading. */}
-      {ready && (
-        <div className="splash-footer">
-          <span className="splash-footer-label">{FOOTER_LABEL}</span>
-        </div>
-      )}
 
       <DesignFrame>
         <BubbleStage count={3} stagger={ENTRANCE_STAGGER} duration={ENTRANCE_DURATION}>

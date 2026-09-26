@@ -1,7 +1,7 @@
 /**
  * Splash. Positions are the design-space numbers from the Figma frame; the
- * background and footer bar anchor to the stage instead, so they reach the
- * true viewport edge at any aspect ratio.
+ * background anchors to the stage instead, so it reaches the true viewport
+ * edge at any aspect ratio.
  */
 
 .splash-bg {
@@ -11,27 +11,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-.splash-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 60px;
-  background: var(--c-badge-fill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: edl-fade-down var(--t-fade-down) var(--ease-back-out) both;
-  animation-delay: 460ms;
-}
-
-.splash-footer-label {
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: 24px;
-  color: #ffffff;
 }
 
 .splash-subtitle {
