@@ -331,7 +331,7 @@ export default function HomeScene({ navigate }: SceneProps) {
         <ConfirmDialog
           open={confirmExitOpen}
           title="Yakin ingin keluar?"
-          message="Progres belajarmu tetap tersimpan. Kamu bisa lanjut lagi kapan saja."
+          message="Progres belajar akan dimulai ulang saat aplikasi dibuka kembali."
           confirmLabel="Ya, Keluar"
           cancelLabel="Tidak"
           onConfirm={confirmExit}
